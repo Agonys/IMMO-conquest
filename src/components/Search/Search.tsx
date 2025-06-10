@@ -8,7 +8,6 @@ export const Search = () => {
   const [searchTerm, setSearchTerm] = useState('');
 
   const handleContainerOnClick = () => {
-    console.log('bly');
     searchRef.current?.focus();
   };
 
@@ -18,14 +17,14 @@ export const Search = () => {
 
   return (
     <div
-      className="has-focus-visible:border-yellow-dark flex w-full max-w-md cursor-pointer gap-4 rounded-md border px-6 py-4 transition-colors"
+      className="has-focus-visible:border-yellow-dark bg-card border-card-border flex w-full max-w-md cursor-pointer gap-4 rounded-md border px-6 py-4 transition-colors"
       onClick={handleContainerOnClick}
     >
       <SearchIcon />
       <input
         ref={searchRef}
         type="text"
-        placeholder="Seach players and guilds..."
+        placeholder="Search players and guilds..."
         className="w-full outline-0"
         id="mainSearch"
         value={searchTerm}

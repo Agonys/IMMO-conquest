@@ -42,6 +42,11 @@
   * {
     border-color: var(--card-border);
   }
+
+  img {
+    max-width: unset;
+    height: unset;
+  }
 }
 
 @utility bg-gradient-yellow {
@@ -67,4 +72,12 @@ body {
     'Segoe UI Emoji',
     Segoe UI Symbol,
     'Noto Color Emoji';
+}
+
+.text-outline-black {
+  text-shadow:
+    -2px -2px 0 black,
+    2px -2px 0 black,
+    -2px 2px 0 black,
+    2px 2px 0 black;
 }

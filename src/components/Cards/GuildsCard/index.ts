@@ -1,0 +1,1 @@
+export { GuildsCard } from './GuildsCard';
