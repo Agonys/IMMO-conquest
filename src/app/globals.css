@@ -2,9 +2,11 @@
 
 :root {
   --foreground: theme('colors.gray.200');
+  --foreground-darker: theme('colors.gray.300');
   --background: #111722;
 
   --card: theme('colors.gray.800');
+  --card-border: theme('colors.gray.700/50');
   --card-header: theme('colors.gray.900/40');
   --yellow-light: theme('colors.yellow.400');
   --yellow-dark: theme('colors.yellow.600');
@@ -14,10 +16,15 @@
 
   --color-accent-cyan: #22d3ee;
   --color-error: #f87171;
+
+  @supports (interpolate-size: allow-keywords) {
+    interpolate-size: allow-keywords;
+  }
 }
 
 @theme inline {
   --color-foreground: var(--foreground);
+  --color-foreground-darker: var(--foreground-darker);
   --color-background: var(--background);
   --color-card: var(--card);
   --color-card-header: var(--card-header);
@@ -28,6 +35,13 @@
   --color-badge-foreground: var(--badge-foreground);
   --color-accent-cyan: var(--color-accent-cyan);
   --color-error: var(--color-error);
+  --color-card-border: var(--card-border);
+}
+
+@layer base {
+  * {
+    border-color: var(--card-border);
+  }
 }
 
 @utility bg-gradient-yellow {
