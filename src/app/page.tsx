@@ -23,7 +23,7 @@ export default function Home() {
         </header>
 
         <main className="flex-1">
-          <Container className="flex-col gap-8 py-8 pt-20">
+          <Container className="flex-col gap-8 py-8 pt-10">
             <div className="flex flex-col gap-2 text-center">
               <h2 className="text-3xl font-bold">Conquest Leaderboard</h2>
               <p className="text-foreground-darker">Track the top performing guilds and players in conquest battles</p>

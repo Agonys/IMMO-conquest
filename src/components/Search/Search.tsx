@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
-import clsx from 'clsx';
 import { Search as SearchIcon, X } from 'lucide-react';
+import { cn } from '@/utils';
 
 // interface SearchProps {}
 export const Search = () => {
@@ -32,7 +32,7 @@ export const Search = () => {
       />
       <X
         onClick={handleClear}
-        className={clsx(
+        className={cn(
           'hover:text-yellow-light ml-auto w-0 opacity-0 transition-all',
           !!searchTerm.length && 'w-auto opacity-100',
         )}
