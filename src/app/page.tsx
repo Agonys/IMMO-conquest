@@ -1,7 +1,7 @@
 'use client';
 
 import { Settings } from 'lucide-react';
-import { QueryClient, QueryClientProvider } from 'react-query';
+import { QueryCache, QueryClient, QueryClientProvider } from 'react-query';
 import { GuildsCard, PlayersCard, SummaryCard } from '@/components/Cards';
 import { ClientOnly } from '@/components/ClientOnly';
 import { Container } from '@/components/Container';
@@ -9,7 +9,17 @@ import { Search } from '@/components/Search';
 import { Tabs } from '@/components/Tabs';
 
 const tabs = ['Guilds', 'Players', 'Summary'];
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+  queryCache: new QueryCache({
+    onError: (error) => console.error(error),
+  }),
+});
 
 export default function Home() {
   return (

@@ -17,18 +17,23 @@ export const Search = () => {
 
   return (
     <div
-      className="has-focus-visible:border-yellow-dark bg-card border-card-border flex w-full max-w-md cursor-pointer gap-4 rounded-md border px-6 py-4 transition-colors"
+      className={cn(
+        'has-focus-visible:border-yellow-dark bg-card border-card-border flex w-full max-w-md cursor-pointer gap-4 rounded-md border px-6 py-4 transition-colors',
+        'cursor-none opacity-50',
+      )}
       onClick={handleContainerOnClick}
     >
       <SearchIcon />
       <input
         ref={searchRef}
         type="text"
-        placeholder="Search players and guilds..."
+        // placeholder="Search players and guilds..."
+        placeholder="Search - Coming Soon..."
         className="w-full outline-0"
         id="mainSearch"
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
+        disabled
       />
       <X
         onClick={handleClear}

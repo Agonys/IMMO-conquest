@@ -3,12 +3,8 @@ import { MapPin, MousePointerClick, Pointer, X } from 'lucide-react';
 import Image from 'next/image';
 import { createPortal } from 'react-dom';
 import { useClickOutside, useMediaQuerySizes } from '@/hooks';
+import { Location } from '@/types';
 import { cn } from '@/utils';
-
-interface Location {
-  name: string;
-  image: string;
-}
 
 interface LocationSelectProps {
   locations: Location[];
@@ -39,8 +35,11 @@ export const LocationSelect = ({ locations, onSelect }: LocationSelectProps) => 
   };
 
   const handleSelectOption = (location: Location) => {
-    setSelectedLocation(location);
-    onSelect?.(location.name);
+    if (location.name !== selectedLocation?.name) {
+      setSelectedLocation(location);
+      onSelect?.(location.name);
+    }
+
     handleCloseModal();
   };
 
@@ -100,7 +99,6 @@ export const LocationSelect = ({ locations, onSelect }: LocationSelectProps) => 
           <div className="h-full overflow-hidden overflow-y-auto">
             <div className="flex shrink-0 flex-col gap-x-4 gap-y-2 md:grid md:grid-cols-2">
               {locations.map((location) => {
-                if (location.name === selectedLocation?.name) return null;
                 return (
                   <div
                     key={location.name}

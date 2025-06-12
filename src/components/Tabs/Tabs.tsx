@@ -79,7 +79,7 @@ export const Tabs = ({ tabs, children }: TabsProps) => {
             onClick={() => setActiveTab(tab)}
             className={cn(
               'hover:text-yellow-dark mb-[1px] cursor-pointer px-5 py-2.5 font-semibold uppercase transition-colors',
-              activeTabIndex === i && 'text-yellow-light',
+              activeTabIndex === i && 'text-yellow-light hover:text-yellow-light',
             )}
           >
             {tab}

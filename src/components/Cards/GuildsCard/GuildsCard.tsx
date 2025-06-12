@@ -5,9 +5,11 @@ import { Trophy } from 'lucide-react';
 import Image from 'next/image';
 import { Badge } from '@/components/Badge';
 import { LocationSelect } from '@/components/LocationSelect';
+import { PaginationControls } from '@/components/PaginationControls';
 import { Separator } from '@/components/Separator';
 import { locations } from '@/constants';
-import { useMediaQuerySizes } from '@/hooks';
+import { useGetGuilds, useMediaQuerySizes } from '@/hooks';
+import { Location } from '@/types';
 import { cn } from '@/utils';
 import {
   ColumnDef,
@@ -152,11 +154,18 @@ const mockData = [
 
 export const GuildsCard = ({ id }: GuildsCardProps) => {
   const { screenSizes } = useMediaQuerySizes();
+  const [currentLocation, setCurrentLocation] = useState('all');
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({
     bestPlayer: screenSizes.xl,
     participants: screenSizes.sm,
     killToExpRatio: screenSizes.xl,
   });
+
+  const { data } = useGetGuilds(currentLocation);
+
+  const onSelectLocation = (locationName: string) => {
+    setCurrentLocation(locationName);
+  };
 
   const columns: ColumnDef<GuildEntry>[] = [
     {
@@ -291,10 +300,10 @@ export const GuildsCard = ({ id }: GuildsCardProps) => {
 
       <div className="flex w-full justify-between">
         <div className="flex flex-col gap-1">
-          <h3 className="text-2xl font-medium">Top guilds list</h3>
+          <h3 className="text-2xl font-medium capitalize">Top guilds list</h3>
           <span className="text-foreground-darker text-sm">Track which guild rules the region</span>
         </div>
-        <LocationSelect locations={locations} />
+        <LocationSelect locations={locations} onSelect={onSelectLocation} />
       </div>
 
       <Separator />
@@ -336,6 +345,7 @@ export const GuildsCard = ({ id }: GuildsCardProps) => {
           }),
         )}
       </div>
+      <PaginationControls table={table} />
     </div>
   );
 };
