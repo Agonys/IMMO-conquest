@@ -1,15 +1,14 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Trophy } from 'lucide-react';
 import Image from 'next/image';
 import { Badge } from '@/components/Badge';
 import { LocationSelect } from '@/components/LocationSelect';
 import { PaginationControls } from '@/components/PaginationControls';
 import { Separator } from '@/components/Separator';
-import { locations } from '@/constants';
 import { useGetGuilds, useMediaQuerySizes } from '@/hooks';
-import { Location } from '@/types';
+import { useGetLocations } from '@/hooks/query';
 import { cn } from '@/utils';
 import {
   ColumnDef,
@@ -154,17 +153,25 @@ const mockData = [
 
 export const GuildsCard = ({ id }: GuildsCardProps) => {
   const { screenSizes } = useMediaQuerySizes();
-  const [currentLocation, setCurrentLocation] = useState('all');
+  const [currentLocation, setCurrentLocation] = useState<string | null>(null);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({
     bestPlayer: screenSizes.xl,
     participants: screenSizes.sm,
     killToExpRatio: screenSizes.xl,
   });
 
-  const { data } = useGetGuilds(currentLocation);
+  const { data: locations, isLoading: locationsIsLoading } = useGetLocations();
+  const { data: guildsList, isLoading: guildsListIsLoading } = useGetGuilds({
+    location: currentLocation,
+  });
 
-  const onSelectLocation = (locationName: string) => {
-    setCurrentLocation(locationName);
+  const isContentLoaded = useMemo(
+    () => !locationsIsLoading && !guildsListIsLoading,
+    [locationsIsLoading, guildsListIsLoading],
+  );
+
+  const onSelectLocation = (locationKey: string | null) => {
+    setCurrentLocation(locationKey);
   };
 
   const columns: ColumnDef<GuildEntry>[] = [
@@ -200,7 +207,7 @@ export const GuildsCard = ({ id }: GuildsCardProps) => {
               alt={row.original.guildName}
               height={48}
               width={48}
-              className={cn('h-6 w-6 rounded', 'sm:h-8 sm:w-8', 'md:h-8 md:w-8', 'lg:h-12 lg:w-12')}
+              className={cn('aspect-square w-8 rounded', 'sm:w-10', 'md:w-12', 'lg:w-14')}
             />
           }
           <span>{row.original.guildName}</span>
@@ -260,6 +267,10 @@ export const GuildsCard = ({ id }: GuildsCardProps) => {
     },
   ];
 
+  const data = useMemo(() => {
+    return Array.isArray(guildsList) ? guildsList : [];
+  }, [guildsList]);
+
   useEffect(() => {
     setColumnVisibility((prev) => ({
       ...prev,
@@ -294,58 +305,72 @@ export const GuildsCard = ({ id }: GuildsCardProps) => {
       'text-yellow-light': position === 1,
     });
 
+  if (!isContentLoaded) {
+    return (
+      <div id={id} className="bg-card flex flex-col items-center justify-center gap-4 rounded-md p-40">
+        Loading...
+      </div>
+    );
+  }
+
   return (
     <div id={id} className="bg-card flex flex-col gap-4 rounded-md p-4">
       {/* Filters */}
 
-      <div className="flex w-full justify-between">
-        <div className="flex flex-col gap-1">
-          <h3 className="text-2xl font-medium capitalize">Top guilds list</h3>
-          <span className="text-foreground-darker text-sm">Track which guild rules the region</span>
-        </div>
-        <LocationSelect locations={locations} onSelect={onSelectLocation} />
-      </div>
+      {!isContentLoaded ? (
+        <div className="flex w-full items-center justify-center p-40">Loading...</div>
+      ) : (
+        <>
+          <div className="flex w-full justify-between gap-10">
+            <div className="flex flex-col gap-1">
+              <h3 className="text-2xl font-medium capitalize">Top guilds list</h3>
+              <span className="text-foreground-darker text-sm">Track which guild rules the region</span>
+            </div>
+            <LocationSelect locations={locations} onSelect={onSelectLocation} />
+          </div>
 
-      <Separator />
+          <Separator />
 
-      <div
-        className={cn(
-          'grid',
-          'grid-cols-[--spacing(10)_1fr_100px_90px]',
-          'xs:grid-cols-[--spacing(11)_2fr_1fr_1fr_1fr]',
-          'md:grid-cols-[--spacing(12)_2fr_1fr_1fr_1fr_1fr]',
-          'lg:grid-cols-[--spacing(13)_2fr_1fr_1fr_1fr_1fr_2fr]',
-          '',
-        )}
-      >
-        {table.getHeaderGroups().map((headerGroup) =>
-          headerGroup.headers.map((header) => {
-            return (
-              <div key={header.id} className={cn('p-2 text-base font-bold text-gray-300 md:text-lg')}>
-                {flexRender(header.column.columnDef.header, header.getContext())}
-              </div>
-            );
-          }),
-        )}
+          <div
+            className={cn(
+              'grid',
+              'grid-cols-[--spacing(10)_1fr_100px_90px]',
+              'xs:grid-cols-[--spacing(11)_2fr_1fr_1fr_1fr]',
+              'md:grid-cols-[--spacing(12)_2fr_1fr_1fr_1fr_1fr]',
+              'lg:grid-cols-[--spacing(13)_2fr_1fr_1fr_1fr_1fr_2fr]',
+              '',
+            )}
+          >
+            {table.getHeaderGroups().map((headerGroup) =>
+              headerGroup.headers.map((header) => {
+                return (
+                  <div key={header.id} className={cn('p-2 text-base font-bold text-gray-300 md:text-lg')}>
+                    {flexRender(header.column.columnDef.header, header.getContext())}
+                  </div>
+                );
+              }),
+            )}
 
-        {table.getRowModel().rows.map((row) =>
-          row.getVisibleCells().map((cell) => {
-            return (
-              <div
-                key={cell.id}
-                className={cn(
-                  'flex items-center border-b p-2 text-sm font-bold md:text-base',
-                  cell.column.id === 'position' && 'justify-center',
-                  row.index % 2 === 1 && 'bg-black/10',
-                )}
-              >
-                {flexRender(cell.column.columnDef.cell, cell.getContext())}
-              </div>
-            );
-          }),
-        )}
-      </div>
-      <PaginationControls table={table} />
+            {table.getRowModel().rows.map((row) =>
+              row.getVisibleCells().map((cell) => {
+                return (
+                  <div
+                    key={cell.id}
+                    className={cn(
+                      'flex items-center border-b p-2 text-sm font-bold md:text-base',
+                      cell.column.id === 'position' && 'justify-center',
+                      row.index % 2 === 1 && 'bg-black/10',
+                    )}
+                  >
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  </div>
+                );
+              }),
+            )}
+          </div>
+          <PaginationControls table={table} />
+        </>
+      )}
     </div>
   );
 };

@@ -6,6 +6,7 @@ const nextConfig: NextConfig = {
   images: {
     remotePatterns: [new URL('https://cdn.idle-mmo.com/**')],
   },
+  allowedDevOrigins: ['192.168.0.87'],
 };
 
 export default nextConfig;

@@ -1,5 +1,8 @@
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/Button';
 import { TABLE_PAGE_SIZES } from '@/constants';
+import { useMediaQuerySizes } from '@/hooks';
+import { cn } from '@/utils';
 import { Table } from '@tanstack/react-table';
 
 interface PaginationControlsProps<T> {
@@ -8,9 +11,10 @@ interface PaginationControlsProps<T> {
 }
 
 export const PaginationControls = <T,>({ table, disabled }: PaginationControlsProps<T>) => {
+  const { screenSizes } = useMediaQuerySizes();
   return (
-    <div className="flex items-center justify-between px-2 py-4">
-      <div className="flex items-center gap-2">
+    <div className="flex justify-between md:items-center">
+      <div className={cn('hidden flex-col gap-2', 'md:flex md:flex-row md:items-center')}>
         <span className="text-muted-foreground text-sm">Rows per page:</span>
         <select
           name="page-size-selector"
@@ -28,19 +32,25 @@ export const PaginationControls = <T,>({ table, disabled }: PaginationControlsPr
           ))}
         </select>
       </div>
-      <div className="flex items-center gap-3">
+      <div className="flex w-full items-center justify-center gap-3 md:w-max">
         <Button
           variant="outline"
           onClick={() => table.previousPage()}
           disabled={disabled ?? !table.getCanPreviousPage()}
+          className={cn('p-2', screenSizes.md && 'px-4')}
         >
-          Previous
+          {screenSizes.md ? 'Previous' : <ChevronLeft />}
         </Button>
         <span className="text-muted-foreground text-sm">
           Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
         </span>
-        <Button variant="outline" onClick={table.nextPage} disabled={disabled ?? !table.getCanNextPage()}>
-          Next
+        <Button
+          className={cn('p-2', screenSizes.md && 'px-4')}
+          variant="outline"
+          onClick={table.nextPage}
+          disabled={disabled ?? !table.getCanNextPage()}
+        >
+          {screenSizes.md ? 'Next' : <ChevronRight />}
         </Button>
       </div>
     </div>
