@@ -8,7 +8,7 @@ import { LocationSelect } from '@/components/LocationSelect';
 import { PaginationControls } from '@/components/PaginationControls';
 import { Separator } from '@/components/Separator';
 import { useGetGuilds, useMediaQuerySizes } from '@/hooks';
-import { useGetLocations } from '@/hooks/query';
+import { useGetCurrentSeason, useGetLocations } from '@/hooks/query';
 import { cn } from '@/utils';
 import {
   ColumnDef,
@@ -153,7 +153,7 @@ const mockData = [
 
 export const GuildsCard = ({ id }: GuildsCardProps) => {
   const { screenSizes } = useMediaQuerySizes();
-  const [currentLocation, setCurrentLocation] = useState<string | null>(null);
+  const [currentLocationKey, setCurrentLocationKey] = useState<string | null>(null);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({
     bestPlayer: screenSizes.xl,
     participants: screenSizes.sm,
@@ -162,7 +162,7 @@ export const GuildsCard = ({ id }: GuildsCardProps) => {
 
   const { data: locations, isLoading: locationsIsLoading } = useGetLocations();
   const { data: guildsList, isLoading: guildsListIsLoading } = useGetGuilds({
-    location: currentLocation,
+    locationKey: currentLocationKey,
   });
 
   const isContentLoaded = useMemo(
@@ -171,7 +171,7 @@ export const GuildsCard = ({ id }: GuildsCardProps) => {
   );
 
   const onSelectLocation = (locationKey: string | null) => {
-    setCurrentLocation(locationKey);
+    setCurrentLocationKey(locationKey);
   };
 
   const columns: ColumnDef<GuildEntry>[] = [

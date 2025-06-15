@@ -1,5 +1,5 @@
 import { sql } from 'drizzle-orm';
-import { integer, sqliteTable, text } from 'drizzle-orm/sqlite-core';
+import { integer, sqliteTable, text, uniqueIndex } from 'drizzle-orm/sqlite-core';
 
 const timestampFields = {
   createdAt: text('created_at')
@@ -15,7 +15,7 @@ const timestampFields = {
 export const seasons = sqliteTable('seasons', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   seasonNumber: integer('season_number').notNull(),
-  startDate: text('start_time').notNull(),
+  startDate: text('start_date').notNull(),
   endDate: text('end_date').notNull(),
   ...timestampFields,
 });
@@ -47,9 +47,9 @@ export const locations = sqliteTable('locations', {
   ...timestampFields,
 });
 
-export const conquestContributionsDaily = sqliteTable('conquest_contributions_daily', {
+const conquestContributions = {
   id: integer('id').primaryKey({ autoIncrement: true }),
-  date: text('date').notNull(),
+  date: text('date').notNull(), // ISO date without time.
   seasonId: integer('season_id').references(() => seasons.id),
   locationId: integer('location_id').references(() => locations.id),
   guildId: integer('guild_id').references(() => guilds.id),
@@ -57,15 +57,46 @@ export const conquestContributionsDaily = sqliteTable('conquest_contributions_da
   kills: integer('kills').default(0),
   experience: integer('experience').default(0),
   ...timestampFields,
+};
+
+export const playersContributionHistory = sqliteTable('players_contributions_history', {
+  ...conquestContributions,
 });
 
-export const guildSummaryDaily = sqliteTable('guilds_summary_daily', {
+export const playersContributionsLatest = sqliteTable(
+  'players_contributions_latest',
+  {
+    ...conquestContributions,
+  },
+  (table) => [
+    uniqueIndex('unique_season_location_guild_player').on(
+      table.seasonId,
+      table.locationId,
+      table.guildId,
+      table.playerId,
+    ),
+  ],
+);
+
+const guildSummary = {
   id: integer('id').primaryKey({ autoIncrement: true }),
-  date: text('date').notNull(),
+  date: text('date'),
   seasonId: integer('season_id').references(() => seasons.id),
   locationId: integer('location_id').references(() => locations.id),
   guildId: integer('guild_id').references(() => guilds.id),
   kills: integer('kills').default(0),
   experience: integer('experience').default(0),
   ...timestampFields,
+};
+
+export const guildSummaryHistory = sqliteTable('guilds_summary_history', {
+  ...guildSummary,
 });
+
+export const guildSummaryLatest = sqliteTable(
+  'guilds_summary_latest',
+  {
+    ...guildSummary,
+  },
+  (table) => [uniqueIndex('unique_season_location_guild').on(table.seasonId, table.locationId, table.guildId)],
+);

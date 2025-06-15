@@ -1,9 +1,9 @@
-import type { SeasonSelectType } from '@/db/schema';
+import { SeasonInsertType } from '@/db/types';
 
 const SEASON_LENGTH_DAYS = 60;
 
-type SeasonInput = Omit<SeasonSelectType, 'id' | 'updatedAt' | 'createdAt' | 'deletedAt'> & {
-  id?: SeasonSelectType['id'];
+type SeasonInput = Omit<SeasonInsertType, 'id' | 'updatedAt' | 'createdAt' | 'deletedAt'> & {
+  id?: SeasonInsertType['id'];
 };
 
 type SeasonDecision =

@@ -1,14 +1,18 @@
 import { useQuery } from 'react-query';
+import { GuildsListSelectType } from '@/db/types';
 import { apiClient } from '@/services';
 
-const getGuilds = () => {
-  return apiClient.get<unknown>(`/guilds?location=${location}`);
+const getGuilds = ({ locationKey }: GuildsListSelectType) => {
+  const searchParams = new URLSearchParams({
+    locationKey: String(locationKey),
+  });
+  return apiClient.get<unknown>(`/guilds?${searchParams.toString()}`);
 };
 
-export const useGetGuilds = () => {
+export const useGetGuilds = ({ locationKey }: Partial<GuildsListSelectType>) => {
   return useQuery({
     queryKey: ['get-guilds', location],
-    queryFn: () => getGuilds(),
-    enabled: false,
+    queryFn: () => getGuilds({ locationKey } as GuildsListSelectType),
+    enabled: !!(locationKey !== undefined),
   });
 };

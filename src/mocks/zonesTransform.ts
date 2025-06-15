@@ -1,16 +1,38 @@
 import { and, desc, gte, lte } from 'drizzle-orm';
 import { db } from '@/db';
-import { conquestContributionsDaily, guildSummaryDaily, guilds, locations, players, seasons } from '@/db/schema';
-import { numericStringToNumber } from '@/utils';
+import {
+  guildSummaryHistory,
+  guildSummaryLatest,
+  guilds,
+  locations,
+  players,
+  playersContributionHistory,
+  playersContributionsLatest,
+  seasons,
+} from '@/db/schema';
+import {
+  GuildInsertType,
+  GuildSummaryHistoryInsertType,
+  LocationInsertType,
+  PlayerInsertType,
+  PlayersContributionHistoryInsertType,
+  guildInsertSchema,
+  locationInsertSchema,
+  playerInsertSchema,
+  seasonInsertSchema,
+} from '@/db/types';
+import { getISOTime, numericStringToNumber } from '@/utils';
 import { buildConflictUpdateColumns } from './buildConflictUpdateColumns';
 import { decideSeason } from './pickSeason';
 import { DataGatherFromSite } from './types';
-import zones from './zones.json';
+import zones from './zones.15-06.json';
 
 const getImageName = (img: string) => img.split('/').pop();
 
-// const now = '2025-06-12T12:00:00.000Z';
+// const now = '2025-06-15T12:00:00.000Z';
 const now = new Date().toISOString();
+// date of records, could be different than now and creation time
+const date = getISOTime({ date: now });
 const metadataFields = {
   createdAt: now,
   updatedAt: now,
@@ -19,10 +41,10 @@ const metadataFields = {
 const guildsMap = new Map<number, GuildInsertType>();
 const playersMap = new Map<string, PlayerInsertType>();
 const locationsMap = new Map<number, LocationInsertType>();
-const contributionsDailyList: ConquestContributionsDailyInsertType[] = [];
-const guildSummaryDailyList: GuildSummaryDailyInsertType[] = [];
+const playersContributionsList: PlayersContributionHistoryInsertType[] = [];
+const guildSummaryList: GuildSummaryHistoryInsertType[] = [];
 
-const seasonData = SeasonInsertSchema.parse({
+const seasonData = seasonInsertSchema.parse({
   id: 4,
   seasonNumber: 4,
   startDate: '2025-05-12T12:00:00.000Z',
@@ -36,7 +58,7 @@ const seasonData = SeasonInsertSchema.parse({
   (zones as DataGatherFromSite).forEach((zone) => {
     const { location, guilds } = zone;
 
-    const parsedLocation = LocationInsertSchema.parse({
+    const parsedLocation = locationInsertSchema.parse({
       id: location.id,
       key: location.key,
       name: location.name,
@@ -59,10 +81,11 @@ const seasonData = SeasonInsertSchema.parse({
       const backgroundImageName = getImageName(background_url);
       const iconImageName = getImageName(icon_url);
 
-      const parsedData = GuildInsertSchema.parse({
-        id: +guildId,
+      const parsedData = guildInsertSchema.parse({
         name,
         tag,
+        date,
+        id: +guildId,
         iconUrl: iconImageName,
         backgroundUrl: backgroundImageName,
         ...metadataFields,
@@ -76,10 +99,11 @@ const seasonData = SeasonInsertSchema.parse({
 
         const hasMembership = formatted.includes('membership-gradient');
 
-        const parsedData = PlayerInsertSchema.parse({
+        const parsedData = playerInsertSchema.parse({
+          hasMembership,
+          date,
           name: raw,
           totalLevel: total_level,
-          hasMembership,
           imageUrl: getImageName(image_url),
           backgroundUrl: getImageName(background_url),
           ...metadataFields,
@@ -191,7 +215,7 @@ const seasonData = SeasonInsertSchema.parse({
           return;
         }
 
-        guildSummaryDailyList.push({
+        guildSummaryList.push({
           date: now,
           seasonId,
           locationId,
@@ -212,7 +236,7 @@ const seasonData = SeasonInsertSchema.parse({
             throw '';
           }
 
-          contributionsDailyList.push({
+          playersContributionsList.push({
             date: now,
             seasonId,
             locationId,
@@ -226,9 +250,31 @@ const seasonData = SeasonInsertSchema.parse({
       });
     });
 
-    // inserting daily contributors summary
-    await tx.insert(conquestContributionsDaily).values(contributionsDailyList);
-    await tx.insert(guildSummaryDaily).values(guildSummaryDailyList);
+    // inserting contributors and guilds into history
+    await tx.insert(playersContributionHistory).values(playersContributionsList);
+    await tx.insert(guildSummaryHistory).values(guildSummaryList);
+
+    // Update latest table to hold current data
+    await tx
+      .insert(playersContributionsLatest)
+      .values(playersContributionsList)
+      .onConflictDoUpdate({
+        target: [
+          playersContributionsLatest.seasonId,
+          playersContributionsLatest.locationId,
+          playersContributionsLatest.guildId,
+          playersContributionsLatest.playerId,
+        ],
+        set: buildConflictUpdateColumns(playersContributionsLatest, ['date', 'experience', 'kills', 'updatedAt']),
+      });
+
+    await tx
+      .insert(guildSummaryLatest)
+      .values(guildSummaryList)
+      .onConflictDoUpdate({
+        target: [guildSummaryLatest.seasonId, guildSummaryLatest.locationId, guildSummaryLatest.guildId],
+        set: buildConflictUpdateColumns(guildSummaryLatest, ['date', 'experience', 'kills', 'updatedAt']),
+      });
   });
 
   console.timeEnd('done in');
