@@ -1,6 +1,5 @@
 'use client';
 
-import { Settings } from 'lucide-react';
 import { QueryCache, QueryClient, QueryClientProvider } from 'react-query';
 import { GuildsCard, PlayersCard, SummaryCard } from '@/components/Cards';
 import { ClientOnly } from '@/components/ClientOnly';
@@ -28,7 +27,7 @@ export default function Home() {
         <header className="bg-card border-b">
           <Container className="mx-auto">
             <h1 className="text-yellow-light text-3xl font-bold uppercase">Conquest</h1>
-            <Settings className="absolute right-4" />
+            {/* <Settings className="absolute right-4" /> */}
           </Container>
         </header>
 
@@ -40,7 +39,7 @@ export default function Home() {
             </div>
             <Search />
           </Container>
-          <Container>
+          <Container className="pb-20">
             <ClientOnly>
               <Tabs tabs={tabs}>
                 <GuildsCard id="guilds" />

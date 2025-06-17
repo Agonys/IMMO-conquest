@@ -4,7 +4,7 @@ import Image from 'next/image';
 import { createPortal } from 'react-dom';
 import { LocationSelectType } from '@/db/types';
 import { useClickOutside, useMediaQuerySizes } from '@/hooks';
-import { cn } from '@/utils';
+import { cn, isSubmitKey } from '@/utils';
 
 interface LocationSelectProps {
   locations?: LocationSelectType[];
@@ -82,7 +82,16 @@ export const LocationSelect = ({ locations, onSelect }: LocationSelectProps) => 
         {/* Header */}
         <div className="border-card-border flex items-center justify-between border-b-2 p-4">
           <strong className="text-lg">Select Location</strong>
-          <X size={20} onClick={handleCloseModal} className="cursor-pointer" />
+          <X
+            tabIndex={0}
+            role="button"
+            size={20}
+            onClick={handleCloseModal}
+            onKeyDown={(e) => {
+              if (isSubmitKey(e)) handleCloseModal();
+            }}
+            className="cursor-pointer"
+          />
         </div>
 
         <div className="flex flex-col gap-6 overflow-hidden p-4">
@@ -112,7 +121,12 @@ export const LocationSelect = ({ locations, onSelect }: LocationSelectProps) => 
               className={cn(
                 'border-card-border z-10 flex cursor-pointer items-center justify-between gap-4 rounded-md border bg-black/20 px-3 py-2 backdrop-blur-sm select-none',
               )}
+              tabIndex={0}
+              role="button"
               onClick={handleClearModal}
+              onKeyDown={(e) => {
+                if (isSubmitKey(e)) handleClearModal();
+              }}
             >
               <p className="text-sm">Cancel</p>
               <Trash2 className="text-red-700" strokeWidth={2} />
@@ -125,10 +139,14 @@ export const LocationSelect = ({ locations, onSelect }: LocationSelectProps) => 
               {locations?.map((location) => {
                 return (
                   <div
+                    tabIndex={0}
                     key={location.name}
                     onClick={() => handleSelectOption(location.key)}
+                    onKeyDown={(e) => {
+                      if (isSubmitKey(e)) handleSelectOption(location.key);
+                    }}
                     role="button"
-                    className="group relative flex h-32 min-w-[200px] cursor-pointer items-end overflow-hidden rounded-lg transition-all"
+                    className="group relative flex h-32 min-w-[200px] cursor-pointer items-end overflow-hidden rounded-lg transition-all focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-inset"
                   >
                     <div className="absolute top-0 left-0 z-20 h-full w-full bg-black/50 transition-colors group-hover:bg-black/30" />
                     <Image
@@ -154,7 +172,12 @@ export const LocationSelect = ({ locations, onSelect }: LocationSelectProps) => 
   return (
     <>
       <div
+        tabIndex={0}
+        role="button"
         onClick={handleOnModalTrigger}
+        onKeyDown={(e) => {
+          if (isSubmitKey(e)) handleOnModalTrigger();
+        }}
         className="border-card-border flex w-max cursor-pointer flex-col overflow-hidden rounded-md border text-sm"
       >
         {/* Trigger */}

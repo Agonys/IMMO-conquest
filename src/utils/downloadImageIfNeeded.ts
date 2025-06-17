@@ -5,7 +5,7 @@ const UPLOAD_DIR = path.join(process.cwd(), 'public', 'uploaded');
 
 const sleep = (ms: number) => new Promise((res) => setTimeout(res, ms));
 
-export async function downloadImageIfNeeded(url: string): Promise<string> {
+export async function downloadImageIfNeeded(url: string, returnPublicPath = false): Promise<string> {
   let validUrl: string;
 
   try {
@@ -45,5 +45,5 @@ export async function downloadImageIfNeeded(url: string): Promise<string> {
     writeFileSync(filePath, buffer);
   }
 
-  return publicPath;
+  return returnPublicPath ? publicPath : fileName;
 }

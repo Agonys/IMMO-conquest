@@ -44,3 +44,75 @@ export type LocationSelectType = typeof LocationSelectSchema._zod.input;
 export type SeasonSelectType = typeof SeasonSelectSchema._zod.input;
 export type GuildsListSelectType = z.infer<typeof GuildsListSelectSchema>;
 export type PlayersListSelectType = z.infer<typeof PlayersListSelectSchema>;
+
+// New data for database POST schema.
+const ContributionSchema = z.object({
+  id: z.number().int(),
+  guild_conquest_progress_id: z.number().int(),
+  character: z.object({
+    name: z.object({
+      raw: z.string(),
+      formatted: z.string(),
+    }),
+    total_level: z.number().int(),
+    image_url: z.string(),
+    background_url: z.string(),
+  }),
+  kills: z.number().int(),
+  experience: z.number().int(),
+});
+
+export const DataGatherFromSiteSchema = z.array(
+  z.object({
+    location: z.object({
+      id: z.number().int(),
+      key: z.string(),
+      name: z.string(),
+      image_url: z.string(),
+    }),
+    contributions: z.array(ContributionSchema),
+    status: z.string(),
+    colour: z.string().nullable(),
+    kills: z.number().int(),
+    experience: z.number().int(),
+    guilds_count: z.number().int(),
+    your_guild: z.object({
+      kills: z.number().int(),
+      experience: z.number().int(),
+      position: z.number().int(),
+    }),
+    active_assaults: z.array(
+      z.object({
+        guild: z.object({
+          name: z.string(),
+          url: z.string(),
+          tag: z.string().nullable(),
+          icon_url: z.string(),
+        }),
+        kills: z.number().int(),
+        experience: z.number().int(),
+        started_at: z.string(),
+        ends_in: z.string(),
+      }),
+    ),
+    guilds: z.record(
+      z.string(),
+      z.object({
+        id: z.number().int(),
+        position: z.number().int(),
+        kills: z.string(),
+        experience: z.string(),
+        contributions: z.array(ContributionSchema),
+        guild: z.object({
+          name: z.string(),
+          url: z.string(),
+          tag: z.string().nullable(),
+          icon_url: z.string(),
+          background_url: z.string(),
+        }),
+      }),
+    ),
+  }),
+);
+
+export type DataGatherFromSite = z.infer<typeof DataGatherFromSiteSchema>;

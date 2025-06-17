@@ -16,20 +16,18 @@ import {
   LocationInsertType,
   PlayerInsertType,
   PlayersContributionHistoryInsertType,
+  SeasonInsertType,
   guildInsertSchema,
   locationInsertSchema,
   playerInsertSchema,
   seasonInsertSchema,
 } from '@/db/types';
+import { DataGatherFromSite } from '@/db/types';
 import { getISOTime, numericStringToNumber } from '@/utils';
-import { buildConflictUpdateColumns } from './buildConflictUpdateColumns';
+import { downloadImageIfNeeded } from '@/utils/downloadImageIfNeeded';
+import { buildConflictUpdateColumns } from '../utils/buildConflictUpdateColumns';
 import { decideSeason } from './pickSeason';
-import { DataGatherFromSite } from './types';
-import zones from './zones.15-06.json';
 
-const getImageName = (img: string) => img.split('/').pop();
-
-// const now = '2025-06-15T12:00:00.000Z';
 const now = new Date().toISOString();
 // date of records, could be different than now and creation time
 const date = getISOTime({ date: now });
@@ -44,30 +42,41 @@ const locationsMap = new Map<number, LocationInsertType>();
 const playersContributionsList: PlayersContributionHistoryInsertType[] = [];
 const guildSummaryList: GuildSummaryHistoryInsertType[] = [];
 
-const seasonData = seasonInsertSchema.parse({
-  id: 4,
-  seasonNumber: 4,
-  startDate: '2025-05-12T12:00:00.000Z',
-  endDate: '2025-07-11T12:00:00.000Z',
-  ...metadataFields,
-});
+// const seasonData = seasonInsertSchema.parse({
+//   id: 4,
+//   seasonNumber: 4,
+//   startDate: '2025-05-12T12:00:00.000Z',
+//   endDate: '2025-07-11T12:00:00.000Z',
+//   ...metadataFields,
+// });
 
-(async () => {
-  console.time('done in');
+interface TransformAndUpdateDatabaseProps {
+  data: DataGatherFromSite;
+  isInitialImport?: boolean;
+  initialData?: {
+    season: SeasonInsertType;
+  };
+}
+export const transformAndUpdateDatabase = async ({
+  data,
+  initialData,
+  isInitialImport,
+}: TransformAndUpdateDatabaseProps) => {
+  const timeNow = performance.now();
 
-  (zones as DataGatherFromSite).forEach((zone) => {
+  for await (const zone of data) {
     const { location, guilds } = zone;
 
     const parsedLocation = locationInsertSchema.parse({
       id: location.id,
       key: location.key,
       name: location.name,
-      backgroundUrl: getImageName(location.image_url),
+      backgroundUrl: await downloadImageIfNeeded(location.image_url),
       ...metadataFields,
     });
     locationsMap.set(location.id, parsedLocation);
 
-    Object.values(guilds).forEach((guildObject) => {
+    for await (const guildObject of Object.values(guilds)) {
       const { guild, contributions } = guildObject;
       const { name, url, tag, icon_url, background_url } = guild;
 
@@ -78,8 +87,8 @@ const seasonData = seasonInsertSchema.parse({
         return;
       }
 
-      const backgroundImageName = getImageName(background_url);
-      const iconImageName = getImageName(icon_url);
+      const backgroundImageName = await downloadImageIfNeeded(background_url);
+      const iconImageName = await downloadImageIfNeeded(icon_url);
 
       const parsedData = guildInsertSchema.parse({
         name,
@@ -93,7 +102,7 @@ const seasonData = seasonInsertSchema.parse({
 
       guildsMap.set(+guildId, parsedData);
 
-      contributions.forEach(({ character }) => {
+      for await (const { character } of contributions) {
         const { total_level, image_url, background_url, name } = character;
         const { raw, formatted } = name;
 
@@ -104,24 +113,36 @@ const seasonData = seasonInsertSchema.parse({
           date,
           name: raw,
           totalLevel: total_level,
-          imageUrl: getImageName(image_url),
-          backgroundUrl: getImageName(background_url),
+          imageUrl: await downloadImageIfNeeded(image_url),
+          backgroundUrl: await downloadImageIfNeeded(background_url),
           ...metadataFields,
         });
 
         playersMap.set(raw, parsedData);
-      });
-    });
-  });
+      }
+    }
+  }
 
   await db.transaction(async (tx) => {
-    const insertedSeason = await tx
-      .insert(seasons)
-      .values(seasonData)
-      .onConflictDoNothing({ target: seasons.id })
-      .returning();
+    let insertedSeason: SeasonInsertType[] = [];
+    let seasonId: number;
 
-    // Inserting locations
+    if (isInitialImport) {
+      if (!initialData?.season) {
+        throw new Error('Is initial import but no season was provided.');
+      }
+
+      const seasonData = seasonInsertSchema.parse({
+        ...initialData.season,
+      });
+
+      insertedSeason = await tx
+        .insert(seasons)
+        .values(seasonData)
+        .onConflictDoNothing({ target: seasons.id })
+        .returning();
+    }
+
     await tx
       .insert(locations)
       .values([...locationsMap.values()])
@@ -140,51 +161,6 @@ const seasonData = seasonInsertSchema.parse({
       })
       .returning();
 
-    // checking for ongoing season or creating a new one if possible from previous.
-    let seasonId: number;
-
-    if (insertedSeason.length) {
-      seasonId = insertedSeason[0].id;
-    } else {
-      const [ongoingSeason] = await tx
-        .select()
-        .from(seasons)
-        .where(and(lte(seasons.startDate, now), gte(seasons.endDate, now)))
-        .limit(1);
-      let lastSeason = ongoingSeason;
-      if (!lastSeason) {
-        [lastSeason] = await tx.select().from(seasons).orderBy(desc(seasons.endDate)).limit(1);
-      }
-
-      const decision = decideSeason({
-        now,
-        ongoingSeason,
-        lastSeason,
-      });
-
-      if (decision.type === 'error') {
-        throw new Error(decision.reason);
-      }
-
-      if (decision.type === 'ongoing') {
-        seasonId = decision.season.id!;
-      } else if (decision.type === 'create') {
-        // Insert new season and get its id
-        const [insertedSeason] = await tx
-          .insert(seasons)
-          .values({
-            ...decision.newSeason,
-            ...metadataFields,
-          })
-          .returning();
-        if (!insertedSeason) {
-          throw new Error('Failed to create new season');
-        }
-        seasonId = insertedSeason.id;
-      }
-    }
-
-    // Inserting players
     const insertedPlayers = await tx
       .insert(players)
       .values([...playersMap.values()])
@@ -201,8 +177,53 @@ const seasonData = seasonInsertSchema.parse({
       })
       .returning();
 
-    //gathering guild and contributors daily summary.
-    (zones as DataGatherFromSite).forEach((zone) => {
+    if (insertedSeason?.length && insertedSeason[0].id) {
+      seasonId = insertedSeason[0].id;
+    } else {
+      const [ongoingSeason] = await tx
+        .select()
+        .from(seasons)
+        .where(and(lte(seasons.startDate, now), gte(seasons.endDate, now)))
+        .limit(1);
+      let lastSeason = ongoingSeason;
+      if (!lastSeason) {
+        const recentSeasonQueryResult = await tx.select().from(seasons).orderBy(desc(seasons.endDate)).limit(1);
+        if (!recentSeasonQueryResult.length) {
+          throw new Error('No season exist in database');
+        }
+
+        lastSeason = recentSeasonQueryResult[0];
+      }
+
+      const decision = decideSeason({
+        now,
+        ongoingSeason,
+        lastSeason,
+      });
+
+      if (decision.type === 'error') {
+        throw new Error(decision.reason);
+      }
+
+      if (decision.type === 'ongoing') {
+        seasonId = decision.season.id!;
+      } else {
+        // Insert new season and get its id
+        const [insertedSeason] = await tx
+          .insert(seasons)
+          .values({
+            ...decision.newSeason,
+            ...metadataFields,
+          })
+          .returning();
+        if (!insertedSeason) {
+          throw new Error('Failed to create new season');
+        }
+        seasonId = insertedSeason.id;
+      }
+    }
+
+    data.forEach((zone) => {
       const { guilds, location } = zone;
       const locationId = location.id;
 
@@ -277,5 +298,5 @@ const seasonData = seasonInsertSchema.parse({
       });
   });
 
-  console.timeEnd('done in');
-})();
+  return +((performance.now() - timeNow) / 1000).toFixed(2);
+};

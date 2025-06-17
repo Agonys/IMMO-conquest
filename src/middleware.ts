@@ -31,11 +31,6 @@ export function middleware(req: NextRequest) {
 
   if (!ip) return new Response('No ip found', { status: 403 });
 
-  if (method !== 'GET' && method !== 'OPTIONS') {
-    logger.warn({ ip, method, req }, 'Blocked: Method Not Allowed');
-    return new NextResponse('Method Not Allowed', { status: 405 });
-  }
-
   if (!isAllowedReferer(referer)) {
     logger.warn({ ip, referer, req }, 'Blocked: Referer Forbidden');
     return new NextResponse('Referer Forbidden', { status: 403 });
@@ -52,7 +47,7 @@ export function middleware(req: NextRequest) {
   }
 
   response.headers.set('Access-Control-Allow-Credentials', 'true');
-  response.headers.set('Access-Control-Allow-Methods', 'GET,OPTIONS');
+  // response.headers.set('Access-Control-Allow-Methods', 'GET,OPTIONS');
   response.headers.set('Access-Control-Allow-Headers', 'Content-Type');
 
   if (method === 'OPTIONS') {

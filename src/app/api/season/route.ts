@@ -1,12 +1,15 @@
+import { cacheKeys } from '@/constants';
 import { db } from '@/db';
 import { SeasonSelectType } from '@/db/types';
 import { cache } from '@/services';
 import { getISOTime, logger, withErrorHandler } from '@/utils';
 
 const getLocations = async (): Promise<Response> => {
-  if (cache.has('season')) {
+  const cacheKey = cacheKeys.seasons;
+
+  if (cache.has(cacheKey)) {
     logger.info('Retrieving current season from cache');
-    return Response.json(cache.get('season'));
+    return Response.json(cache.get(cacheKey));
   }
 
   logger.info('Querying DB for current season');
@@ -22,7 +25,7 @@ const getLocations = async (): Promise<Response> => {
     },
   })) satisfies SeasonSelectType | undefined;
 
-  cache.set('season', result);
+  cache.set(cacheKey, result);
 
   return Response.json(result);
 };
