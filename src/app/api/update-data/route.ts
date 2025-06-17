@@ -14,7 +14,7 @@ const putDataIntoDB = async (req: NextRequest): Promise<Response> => {
     const userAgent = req.headers.get('user-agent');
     const { referrer, credentials } = req;
     logger.info({ forwardedFor, requestedWith, userAgent, referrer, credentials }, 'putDataIntoDB request details');
-    return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    return Response.json({ error: 'Unauthorized - Get out of here' }, { status: 401 });
   }
 
   try {
