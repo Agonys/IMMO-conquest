@@ -22,6 +22,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
+          cache: 'pnpm'
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -37,6 +38,28 @@ jobs:
           DB_FILE_NAME: ${{ secrets.DB_FILE_NAME }}
           SECRET_API_KEY: ${{ secrets.SECRET_API_KEY }}
 
+      - name: Create deployment package
+        run: |
+          # Create a deployment archive with only necessary files
+          tar -czf deploy.tar.gz \
+            .next \
+            public \
+            package.json \
+            pnpm-lock.yaml \
+            next.config.* \
+            drizzle \
+            src/lib/db \
+            --exclude=node_modules \
+            --exclude=.git \
+            --exclude=.next/cache
+
+      - name: Upload deployment package
+        uses: actions/upload-artifact@v4
+        with:
+          name: deployment-package
+          path: deploy.tar.gz
+          retention-days: 1
+
   deploy:
     needs: build
     environment: production
@@ -44,8 +67,20 @@ jobs:
     timeout-minutes: 15
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - name: Download deployment package
+        uses: actions/download-artifact@v4
+        with:
+          name: deployment-package
+
+      - name: Copy deployment package to VPS
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT }}
+          source: 'deploy.tar.gz'
+          target: '/tmp/'
 
       - name: Deploy to VPS
         uses: appleboy/ssh-action@v1.0.3
@@ -75,39 +110,34 @@ jobs:
             mkdir -p ${{ env.DEPLOY_PATH }}
             cd ${{ env.DEPLOY_PATH }}
 
-            # Install git if not exists
-            if ! command -v git &> /dev/null; then
-              sudo apk add --no-cache git
-            fi
+            # Stop existing PM2 process before deployment
+            pm2 delete ${{ env.APP_NAME }} 2>/dev/null || true
 
-            # Clone or pull latest changes
-            if [ -d ".git" ]; then
-              git fetch origin
-              git reset --hard origin/main
-            else
-              git clone ${{ github.server_url }}/${{ github.repository }} .
-            fi
+            # Extract deployment package
+            tar -xzf /tmp/deploy.tar.gz
+            rm /tmp/deploy.tar.gz
 
             # Create .env file
             echo '${{ secrets.ENV_FILE }}' > .env
             chmod 600 .env
 
-            # Install dependencies and build
-            pnpm install --frozen-lockfile --prod
-            pnpm build
+            # Install only production dependencies (much faster and less memory)
+            export NODE_OPTIONS="--max-old-space-size=1024"
+            pnpm install --prod --frozen-lockfile
 
-            # Stop existing PM2 process if running
-            pm2 delete ${{ env.APP_NAME }} 2>/dev/null || true
-
-            # Do all migrations for database
+            # Run database migrations
             pnpm run drizzle:migrate
 
-            # Start new PM2 process with pnpm
+            # Start new PM2 process
             pm2 start "pnpm start" \
               --name "${{ env.APP_NAME }}" \
               --cwd "${{ env.DEPLOY_PATH }}" \
               --env NODE_ENV=production \
-              --env PORT=3000
+              --env PORT=3000 \
+              --max-memory-restart 200M
 
             # Save PM2 configuration
             pm2 save
+
+            # Clean up
+            pnpm store prune
