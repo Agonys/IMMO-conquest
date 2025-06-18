@@ -12,7 +12,7 @@ apiClient.interceptors.request.use((config) => {
 });
 
 apiClient.interceptors.response.use(
-  (response) => response.data,
+  (response) => response,
   async (error) => {
     return Promise.reject({
       status: error.response?.status,

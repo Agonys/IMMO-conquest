@@ -37,7 +37,7 @@ export const PaginationControls = <T,>({ table, disabled }: PaginationControlsPr
           variant="outline"
           onClick={() => table.previousPage()}
           disabled={disabled ?? !table.getCanPreviousPage()}
-          className={cn('p-2', screenSizes.md && 'px-4')}
+          className={cn('px-2 py-2', screenSizes.md && 'px-4')}
         >
           {screenSizes.md ? 'Previous' : <ChevronLeft />}
         </Button>
@@ -45,7 +45,7 @@ export const PaginationControls = <T,>({ table, disabled }: PaginationControlsPr
           Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
         </span>
         <Button
-          className={cn('p-2', screenSizes.md && 'px-4')}
+          className={cn('px-2 py-2', screenSizes.md && 'px-4')}
           variant="outline"
           onClick={table.nextPage}
           disabled={disabled ?? !table.getCanNextPage()}

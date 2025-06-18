@@ -65,7 +65,7 @@ const ContributionSchema = z.object({
 export const DataGatherFromSiteSchema = z.array(
   z.object({
     location: z.object({
-      id: z.number().int(),
+      id: z.coerce.number().int(),
       key: z.string(),
       name: z.string(),
       image_url: z.string(),
@@ -73,13 +73,13 @@ export const DataGatherFromSiteSchema = z.array(
     contributions: z.array(ContributionSchema),
     status: z.string(),
     colour: z.string().nullable(),
-    kills: z.number().int(),
-    experience: z.number().int(),
-    guilds_count: z.number().int(),
+    kills: z.coerce.number().int(),
+    experience: z.coerce.number().int(),
+    guilds_count: z.coerce.number().int(),
     your_guild: z.object({
-      kills: z.number().int(),
-      experience: z.number().int(),
-      position: z.number().int(),
+      kills: z.coerce.number().int(),
+      experience: z.coerce.number().int(),
+      position: z.coerce.number().int(),
     }),
     active_assaults: z.array(
       z.object({
@@ -89,8 +89,8 @@ export const DataGatherFromSiteSchema = z.array(
           tag: z.string().nullable(),
           icon_url: z.string(),
         }),
-        kills: z.number().int(),
-        experience: z.number().int(),
+        kills: z.coerce.number().int(),
+        experience: z.coerce.number().int(),
         started_at: z.string(),
         ends_in: z.string(),
       }),
@@ -98,8 +98,8 @@ export const DataGatherFromSiteSchema = z.array(
     guilds: z.record(
       z.string(),
       z.object({
-        id: z.number().int(),
-        position: z.number().int(),
+        id: z.coerce.number().int(),
+        position: z.coerce.number().int(),
         kills: z.string(),
         experience: z.string(),
         contributions: z.array(ContributionSchema),
@@ -121,8 +121,8 @@ export const DatabaseDataUpdateSchema = z.object({
   initialData: z
     .object({
       season: z.object({
-        id: z.number().int().optional(),
-        seasonNumber: z.number().int(),
+        id: z.coerce.number().int().optional(),
+        seasonNumber: z.coerce.number().int(),
         startDate: z.string().datetime(),
         endDate: z.string().datetime(),
       }),

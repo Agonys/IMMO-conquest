@@ -19,7 +19,7 @@ export const Search = () => {
     <div
       className={cn(
         'has-focus-visible:border-yellow-dark bg-card border-card-border flex w-full max-w-md cursor-pointer gap-4 rounded-md border px-6 py-4 transition-colors',
-        'cursor-auto opacity-50',
+        'cursor-auto opacity-50', // temp while search is not available
       )}
       onClick={handleContainerOnClick}
     >

@@ -27,7 +27,10 @@ export function middleware(req: NextRequest) {
   const origin = req.headers.get('origin');
   const referer = req.headers.get('referer');
   const { method } = req;
-  const ip = (req.headers.get('x-forwarded-for') ?? '127.0.0.1').split(',')[0];
+
+  const forwardedFor = req.headers.get('x-forwarded-for');
+  if (!forwardedFor) return new Response('No ip found', { status: 403 });
+  const ip = forwardedFor.split(',')[0];
 
   if (!ip) return new Response('No ip found', { status: 403 });
 
@@ -47,7 +50,7 @@ export function middleware(req: NextRequest) {
   }
 
   response.headers.set('Access-Control-Allow-Credentials', 'true');
-  // response.headers.set('Access-Control-Allow-Methods', 'GET,OPTIONS');
+  response.headers.set('Access-Control-Allow-Methods', 'POST,GET,OPTIONS');
   response.headers.set('Access-Control-Allow-Headers', 'Content-Type');
 
   if (method === 'OPTIONS') {

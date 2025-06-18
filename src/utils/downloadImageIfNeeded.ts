@@ -2,32 +2,27 @@ import { existsSync, mkdirSync, writeFileSync } from 'fs';
 import path from 'path';
 
 const UPLOAD_DIR = path.join(process.cwd(), 'public', 'uploaded');
+const ALLOWED_EXTENSIONS = ['.png', '.jpg', '.jpeg'];
 
 const sleep = (ms: number) => new Promise((res) => setTimeout(res, ms));
 
 export async function downloadImageIfNeeded(url: string, returnPublicPath = false): Promise<string> {
-  let validUrl: string;
+  const transformedUrl = url.replaceAll(/=(\d+)/g, '=400');
+  const URLObject = new URL(transformedUrl);
 
-  try {
-    const transformedUrl = url.replaceAll(/=(\d+)/g, '=400');
-    const URLObject = new URL(transformedUrl);
-
-    if (!URLObject.pathname.endsWith('.png') && !URLObject.pathname.endsWith('.jpg')) {
-      throw new Error('Only PNG and JPG is supported');
-    }
-
-    if (!['https:', 'http:'].includes(URLObject.protocol)) {
-      throw new Error('image is not served as HTTP/S URL');
-    }
-
-    validUrl = URLObject.href;
-  } catch (error) {
-    throw error;
+  if (!ALLOWED_EXTENSIONS.includes(path.extname(URLObject.pathname.toLowerCase()))) {
+    throw new Error('Only PNG, JPG, JPEG are supported');
   }
+
+  if (!['https:', 'http:'].includes(URLObject.protocol)) {
+    throw new Error('image is not served as HTTP/S URL');
+  }
+
+  const validUrl = URLObject.href;
 
   mkdirSync(UPLOAD_DIR, { recursive: true });
 
-  const fileName = validUrl.split('/').pop();
+  const fileName = path.basename(new URL(validUrl).pathname);
   if (!fileName) {
     throw new Error(`Couldn't find file name: ${validUrl}`);
   }

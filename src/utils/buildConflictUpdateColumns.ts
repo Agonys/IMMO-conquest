@@ -8,6 +8,10 @@ export const buildConflictUpdateColumns = <T extends SQLiteTable, Q extends keyo
   const cls = getTableColumns(table);
   return columns.reduce(
     (acc, column) => {
+      if (!cls[column]) {
+        throw new Error(`Column "${String(column)}" not found in table "${table._.name}"`);
+      }
+
       const colName = cls[column].name;
       acc[column] = sql.raw(`excluded.${colName}`);
       return acc;

@@ -1,3 +1,4 @@
+import { NextResponse } from 'next/server';
 import { cacheKeys } from '@/constants';
 import { db } from '@/db';
 import { locations } from '@/db/schema';
@@ -7,10 +8,11 @@ import { logger, withErrorHandler } from '@/utils';
 
 const getLocations = async (): Promise<Response> => {
   const cacheKey = cacheKeys.locations;
+  const cached = cache.get(cacheKey);
 
-  if (cache.has(cacheKey)) {
+  if (cached !== undefined) {
     logger.info('Retrieving locations from cache');
-    return Response.json(cache.get(cacheKey));
+    return cached ? NextResponse.json(cached) : NextResponse.json({ error: 'No locations found' }, { status: 404 });
   }
 
   logger.info('Querying DB for locations');
@@ -25,7 +27,7 @@ const getLocations = async (): Promise<Response> => {
 
   cache.set(cacheKey, result);
 
-  return Response.json(result);
+  return NextResponse.json(result);
 };
 
 export const GET = withErrorHandler(getLocations);

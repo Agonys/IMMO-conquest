@@ -65,61 +65,66 @@ export const transformAndUpdateDatabase = async ({
   const timeNow = performance.now();
 
   for await (const zone of data) {
-    const { location, guilds } = zone;
+    try {
+      const { location, guilds } = zone;
 
-    const parsedLocation = locationInsertSchema.parse({
-      id: location.id,
-      key: location.key,
-      name: location.name,
-      backgroundUrl: await downloadImageIfNeeded(location.image_url),
-      ...metadataFields,
-    });
-    locationsMap.set(location.id, parsedLocation);
-
-    for await (const guildObject of Object.values(guilds)) {
-      const { guild, contributions } = guildObject;
-      const { name, url, tag, icon_url, background_url } = guild;
-
-      const guildId = new URLSearchParams(url.split('?')[1]).get('guild_id');
-
-      if (!guildId) {
-        console.warn(`No ID found while processing guild`, { url, name, tag });
-        return;
-      }
-
-      const backgroundImageName = await downloadImageIfNeeded(background_url);
-      const iconImageName = await downloadImageIfNeeded(icon_url);
-
-      const parsedData = guildInsertSchema.parse({
-        name,
-        tag,
-        date,
-        id: +guildId,
-        iconUrl: iconImageName,
-        backgroundUrl: backgroundImageName,
+      const parsedLocation = locationInsertSchema.parse({
+        id: location.id,
+        key: location.key,
+        name: location.name,
+        backgroundUrl: await downloadImageIfNeeded(location.image_url),
         ...metadataFields,
       });
+      locationsMap.set(location.id, parsedLocation);
 
-      guildsMap.set(+guildId, parsedData);
+      for await (const guildObject of Object.values(guilds)) {
+        const { guild, contributions } = guildObject;
+        const { name, url, tag, icon_url, background_url } = guild;
 
-      for await (const { character } of contributions) {
-        const { total_level, image_url, background_url, name } = character;
-        const { raw, formatted } = name;
+        const guildId = new URLSearchParams(url.split('?')[1]).get('guild_id');
 
-        const hasMembership = formatted.includes('membership-gradient');
+        if (!guildId) {
+          console.warn(`No ID found while processing guild`, { url, name, tag });
+          continue;
+        }
 
-        const parsedData = playerInsertSchema.parse({
-          hasMembership,
+        const backgroundImageName = await downloadImageIfNeeded(background_url);
+        const iconImageName = await downloadImageIfNeeded(icon_url);
+
+        const parsedData = guildInsertSchema.parse({
+          name,
+          tag,
           date,
-          name: raw,
-          totalLevel: total_level,
-          imageUrl: await downloadImageIfNeeded(image_url),
-          backgroundUrl: await downloadImageIfNeeded(background_url),
+          id: +guildId,
+          iconUrl: iconImageName,
+          backgroundUrl: backgroundImageName,
           ...metadataFields,
         });
 
-        playersMap.set(raw, parsedData);
+        guildsMap.set(+guildId, parsedData);
+
+        for await (const { character } of contributions) {
+          const { total_level, image_url, background_url, name } = character;
+          const { raw, formatted } = name;
+
+          const hasMembership = formatted.includes('membership-gradient');
+
+          const parsedData = playerInsertSchema.parse({
+            hasMembership,
+            date,
+            name: raw,
+            totalLevel: total_level,
+            imageUrl: await downloadImageIfNeeded(image_url),
+            backgroundUrl: await downloadImageIfNeeded(background_url),
+            ...metadataFields,
+          });
+
+          playersMap.set(raw, parsedData);
+        }
       }
+    } catch (error) {
+      console.error(`Failed to process zone: ${zone.location.name}`, error);
+      return;
     }
   }
 
@@ -254,7 +259,7 @@ export const transformAndUpdateDatabase = async ({
           if (!playerId) {
             console.error(`trying to find playerId of a player who wasn't inserted`, { name, contributor, guildId });
             console.log(insertedPlayers.find((p) => p.name === name));
-            throw '';
+            throw new Error(`Player not found in inserted players: ${name}`);
           }
 
           playersContributionsList.push({

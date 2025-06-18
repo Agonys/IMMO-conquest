@@ -1,4 +1,4 @@
-import { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { ZodError } from 'zod';
 import { DatabaseDataUpdateSchema } from '@/db/types';
 import { transformAndUpdateDatabase } from '@/scripts/transformAndUpdateDatabase';
@@ -12,9 +12,9 @@ const putDataIntoDB = async (req: NextRequest): Promise<Response> => {
     const forwardedFor = req.headers.get('x-forwarded-for');
     const requestedWith = req.headers.get('x-requested-with');
     const userAgent = req.headers.get('user-agent');
-    const { referrer, credentials } = req;
-    logger.info({ forwardedFor, requestedWith, userAgent, referrer, credentials }, 'putDataIntoDB request details');
-    return Response.json({ error: 'Unauthorized - Get out of here' }, { status: 401 });
+    const { referrer } = req;
+    logger.info({ forwardedFor, requestedWith, userAgent, referrer }, 'putDataIntoDB request details');
+    return NextResponse.json({ error: 'Unauthorized - Get out of here' }, { status: 401 });
   }
 
   try {
@@ -35,16 +35,16 @@ const putDataIntoDB = async (req: NextRequest): Promise<Response> => {
   } catch (error: unknown) {
     if (error instanceof ZodError) {
       logger.error({ error }, 'Zod parsing error');
-      return Response.json({ error: formatApiZodError(error) }, { status: 400 });
+      return NextResponse.json({ error: formatApiZodError(error) }, { status: 400 });
     }
 
     if (error instanceof Error) {
       logger.error(error);
-      return Response.json({ error: error.message }, { status: 400 });
+      return NextResponse.json({ error: error.message }, { status: 400 });
     }
   }
 
-  return Response.json({ success: true }, { status: 200 });
+  return NextResponse.json({ success: true }, { status: 200 });
 };
 
 export const POST = withErrorHandler(putDataIntoDB);

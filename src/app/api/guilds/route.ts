@@ -1,4 +1,5 @@
 import { gt, lt, sql } from 'drizzle-orm';
+import { NextResponse } from 'next/server';
 import { cacheKeys } from '@/constants';
 import { db } from '@/db';
 import { seasons } from '@/db/schema';
@@ -11,10 +12,11 @@ import { withErrorHandler } from '@/utils/withErrorHandler';
 
 const getGuilds = async (): Promise<Response> => {
   const cacheKey = cacheKeys.guilds;
+  const cached = cache.get(cacheKey);
 
-  if (cache.has(cacheKey)) {
+  if (cached !== undefined) {
     logger.info('Retrieving guilds from cache');
-    return Response.json(cache.get(cacheKey));
+    return cached ? NextResponse.json(cached) : NextResponse.json({ error: 'No guilds found' }, { status: 404 });
   }
 
   logger.info('Querying DB for guilds');
@@ -33,7 +35,7 @@ const getGuilds = async (): Promise<Response> => {
 
     if (!currentSeason) {
       logger.warn({ currentSeason }, "Season couldn't be found. Maybe theres isn't one?");
-      return Response.json({ error: 'No season has started yet' }, { status: 404 });
+      return NextResponse.json({ error: 'No season has started yet' }, { status: 404 });
     }
 
     const dbResult = (await db.values(sql`
@@ -94,6 +96,11 @@ const getGuilds = async (): Promise<Response> => {
         totalExp DESC
     `)) as unknown as GuildsSummaryLatestDBResult[];
 
+    if (dbResult.length === 0) {
+      logger.warn('No guild data found in database');
+      return NextResponse.json({ error: 'No guild data available' }, { status: 404 });
+    }
+
     data = dbResult
       .map<GuildEntry>((row) => ({
         locationKey: row.locationKey,
@@ -118,7 +125,7 @@ const getGuilds = async (): Promise<Response> => {
     lastUpdated = dbResult[0].updatedAt;
   } catch (err) {
     logger.error({ err }, 'Get guilds database query failed');
-    return Response.json({ error: 'Database guilds query error' }, { status: 500 });
+    return NextResponse.json({ error: 'Database guilds query error' }, { status: 500 });
   }
 
   const result = {
@@ -126,10 +133,9 @@ const getGuilds = async (): Promise<Response> => {
     data,
   } satisfies GetGuildsResponse;
 
-  logger.debug('Caching response');
   cache.set(cacheKey, result);
 
-  return Response.json(result);
+  return NextResponse.json(result);
 };
 
 export const GET = withErrorHandler(getGuilds);

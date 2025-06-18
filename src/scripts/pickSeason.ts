@@ -33,9 +33,9 @@ export const decideSeason = ({
 
   // New season starts at lastSeason.endDate
   const newSeasonStart = lastSeason.endDate;
-  const endDateObj = new Date(newSeasonStart);
-  endDateObj.setUTCDate(endDateObj.getUTCDate() + seasonLengthDays);
-  const newSeasonEnd = endDateObj.toISOString().replace(/\.\d{3}Z$/, '.000Z');
+  const startDate = new Date(newSeasonStart);
+  const endDate = new Date(startDate.getTime() + seasonLengthDays * 24 * 60 * 60 * 1000);
+  const newSeasonEnd = endDate.toISOString();
 
   // Check if "now" is within the new season
   if (now < newSeasonStart || now >= newSeasonEnd) {
@@ -47,7 +47,7 @@ export const decideSeason = ({
   return {
     type: 'create',
     newSeason: {
-      seasonNumber: lastSeason.seasonNumber + 1,
+      seasonNumber: lastSeason.seasonNumber,
       startDate: newSeasonStart,
       endDate: newSeasonEnd,
     },

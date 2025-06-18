@@ -8,8 +8,12 @@ interface FormatTimeOptions {
 export const getISOTime = (options?: FormatTimeOptions) => {
   const now = options?.date ? new Date(options.date) : new Date();
   if (isNaN(now.valueOf())) {
-    console.error(options!.date);
+    console.error(options?.date);
     throw new Error('Invalid date provided into getISOTime');
+  }
+
+  if (options?.onlyTime && options?.onlyDate) {
+    throw new Error('onlyTime and onlyDate cannot both be true');
   }
 
   const nowISO = now.toISOString();

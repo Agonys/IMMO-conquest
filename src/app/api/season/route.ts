@@ -1,3 +1,4 @@
+import { NextResponse } from 'next/server';
 import { cacheKeys } from '@/constants';
 import { db } from '@/db';
 import { SeasonSelectType } from '@/db/types';
@@ -6,18 +7,18 @@ import { getISOTime, logger, withErrorHandler } from '@/utils';
 
 const getLocations = async (): Promise<Response> => {
   const cacheKey = cacheKeys.seasons;
+  const cached = cache.get(cacheKey);
 
-  if (cache.has(cacheKey)) {
+  if (cached !== undefined) {
     logger.info('Retrieving current season from cache');
-    return Response.json(cache.get(cacheKey));
+    return cached ? NextResponse.json(cached) : NextResponse.json({ error: 'No active season found' }, { status: 404 });
   }
 
   logger.info('Querying DB for current season');
 
   const now = getISOTime();
-
   const result = (await db.query.seasons.findFirst({
-    where: (seasons, { gt, lt }) => lt(seasons.startDate, now) && gt(seasons.endDate, now),
+    where: (seasons, { gte, lte }) => lte(seasons.startDate, now) && gte(seasons.endDate, now),
     columns: {
       seasonNumber: true,
       startDate: true,
@@ -27,7 +28,7 @@ const getLocations = async (): Promise<Response> => {
 
   cache.set(cacheKey, result);
 
-  return Response.json(result);
+  return NextResponse.json(result);
 };
 
 export const GET = withErrorHandler(getLocations);

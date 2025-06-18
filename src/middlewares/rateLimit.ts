@@ -6,7 +6,7 @@ const MAX_REQUESTS = 60;
 const TIME_WINDOW = MAX_REQUESTS * 1000;
 const LOGGER_TRESHOLD_MODIFIER = 1.5;
 
-interface RateLimitReponse {
+interface RateLimitResponse {
   remaining: number;
   limit: number;
   isBlocked: boolean;
@@ -18,13 +18,14 @@ const response = {
   limit: MAX_REQUESTS,
 };
 
-export const rateLimit = (ip?: string): RateLimitReponse => {
+export const rateLimit = (ip?: string): RateLimitResponse => {
   const now = Date.now();
 
   if (!ip)
     return {
       ...response,
       isBlocked: true,
+      remaining: 0,
     };
 
   const record = rateLimitMap.get(ip);
@@ -47,7 +48,7 @@ export const rateLimit = (ip?: string): RateLimitReponse => {
     };
   }
 
-  if (record.count > LOGGER_TRESHOLD_MODIFIER * 1.5) {
+  if (record.count > LOGGER_TRESHOLD_MODIFIER * MAX_REQUESTS) {
     logger.warn(
       { ip },
       `User is exceending limit of ${LOGGER_TRESHOLD_MODIFIER * MAX_REQUESTS} requests per ${TIME_WINDOW / 1000}s`,

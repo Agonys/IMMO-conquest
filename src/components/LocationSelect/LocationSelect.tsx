@@ -4,7 +4,7 @@ import Image from 'next/image';
 import { createPortal } from 'react-dom';
 import { LocationSelectType } from '@/db/types';
 import { useClickOutside, useMediaQuerySizes } from '@/hooks';
-import { cn, isSubmitKey } from '@/utils';
+import { cn, getPublicImagePath, isSubmitKey } from '@/utils';
 
 interface LocationSelectProps {
   locations?: LocationSelectType[];
@@ -64,8 +64,8 @@ export const LocationSelect = ({ locations, onSelect }: LocationSelectProps) => 
   const portalContent = showModal ? (
     <div
       className={cn(
-        'pointer-event-none fixed top-0 left-0 z-50 flex h-full w-full items-center justify-center opacity-0 transition-[opacity] duration-150 ease-in-out',
-        openModal && 'pointer-event-auto opacity-100',
+        'pointer-events-none fixed top-0 left-0 z-50 flex h-full w-full items-center justify-center opacity-0 transition-[opacity] duration-150 ease-in-out',
+        openModal && 'pointer-events-auto opacity-100',
       )}
     >
       {/* Cover */}
@@ -74,7 +74,7 @@ export const LocationSelect = ({ locations, onSelect }: LocationSelectProps) => 
       {/* Content */}
       <div
         className={cn(
-          'bg-card oveflow-hidden z-20 flex max-h-11/12 max-w-11/12 min-w-[300px] flex-col overflow-hidden rounded-xl transition-[scale] ease-in-out',
+          'bg-card z-20 flex max-h-11/12 max-w-11/12 min-w-[300px] flex-col overflow-hidden rounded-xl transition-[scale] ease-in-out',
           openModal ? 'scale-100' : 'scale-95',
         )}
         ref={portalContentRef}
@@ -101,7 +101,7 @@ export const LocationSelect = ({ locations, onSelect }: LocationSelectProps) => 
               <Image
                 width={350}
                 height={200}
-                src={currentLocation?.backgroundUrl || ''}
+                src={getPublicImagePath(currentLocation.backgroundUrl)}
                 alt={currentLocation?.name || ''}
                 sizes="(min-width: 320px) 100vw, 100vw"
                 className={cn(
@@ -140,7 +140,7 @@ export const LocationSelect = ({ locations, onSelect }: LocationSelectProps) => 
                 return (
                   <div
                     tabIndex={0}
-                    key={location.name}
+                    key={location.key}
                     onClick={() => handleSelectOption(location.key)}
                     onKeyDown={(e) => {
                       if (isSubmitKey(e)) handleSelectOption(location.key);
@@ -151,7 +151,7 @@ export const LocationSelect = ({ locations, onSelect }: LocationSelectProps) => 
                     <div className="absolute top-0 left-0 z-20 h-full w-full bg-black/50 transition-colors group-hover:bg-black/30" />
                     <Image
                       fill
-                      src={location?.backgroundUrl || ''}
+                      src={getPublicImagePath(location?.backgroundUrl) || ''}
                       alt={location?.name || ''}
                       sizes="(min-width: 320px) 100vw, 100vw"
                       className={cn('absolute z-10 object-cover object-center')}
@@ -181,7 +181,7 @@ export const LocationSelect = ({ locations, onSelect }: LocationSelectProps) => 
         className="border-card-border flex w-max cursor-pointer flex-col overflow-hidden rounded-md border text-sm"
       >
         {/* Trigger */}
-        <div className="bg-card-header boder-b mb-px flex w-full min-w-max items-center justify-between gap-8 border-b-white px-3 py-2">
+        <div className="bg-card-header mb-px flex w-full min-w-max items-center justify-between gap-8 border-b px-3 py-2">
           <span>Select Region</span>
           {screenSizes.md ? <MousePointerClick size={20} /> : <Pointer size={16} />}
         </div>
@@ -196,7 +196,7 @@ export const LocationSelect = ({ locations, onSelect }: LocationSelectProps) => 
           {currentLocation?.backgroundUrl && (
             <Image
               fill
-              src={currentLocation?.backgroundUrl || ''}
+              src={getPublicImagePath(currentLocation.backgroundUrl) || ''}
               alt={currentLocation?.name || ''}
               sizes="(min-width: 320px) 100vw, 100vw"
               className="absolute h-full w-full object-cover brightness-40"
