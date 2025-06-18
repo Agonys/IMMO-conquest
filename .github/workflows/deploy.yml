@@ -58,6 +58,12 @@ jobs:
             # Update package list
             sudo apt update
 
+            # Install nginx if not present
+            if ! command -v nginx &> /dev/null; then
+              sudo apt install -y nginx
+              sudo systemctl enable nginx
+            fi
+
             # Install Node.js 22 if not present
             if ! command -v node &> /dev/null || [[ $(node -v | cut -d'.' -f1 | cut -d'v' -f2) -lt 22 ]]; then
               curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
@@ -102,62 +108,63 @@ jobs:
             pnpm run drizzle:migrate
 
             # Configure nginx (only if config doesn't exist)
-            if [ ! -f /etc/nginx/sites-available/idlemmo-conquest ]; then
+            if [ ! -f /etc/nginx/sites-available/${{ env.APP_NAME }} ]; then
               echo "Creating nginx configuration..."
-              sudo tee /etc/nginx/sites-available/idlemmo-conquest > /dev/null << 'EOF'
-              server {
-                  listen 80;
-                  server_name idlemmo-conquest.com www.idlemmo-conquest.com;
+              sudo tee /etc/nginx/sites-available/${{ env.APP_NAME }} > /dev/null <<'EOF'
+            server {
+                listen 80;
+                listen [::]:80;
+                server_name ${{ env.APP_NAME }}.com www.${{ env.APP_NAME }}.com;
 
-                  add_header X-Frame-Options "SAMEORIGIN" always;
-                  add_header X-Content-Type-Options "nosniff" always;
-                  add_header X-XSS-Protection "1; mode=block" always;
-                  add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+                add_header X-Frame-Options "SAMEORIGIN" always;
+                add_header X-Content-Type-Options "nosniff" always;
+                add_header X-XSS-Protection "1; mode=block" always;
+                add_header Referrer-Policy "strict-origin-when-cross-origin" always;
 
-                  gzip on;
-                  gzip_vary on;
-                  gzip_min_length 1024;
-                  gzip_types text/plain text/css text/xml text/javascript 
-                            application/javascript application/xml+rss 
-                            application/json image/svg+xml;
+                gzip on;
+                gzip_vary on;
+                gzip_min_length 1024;
+                gzip_types text/plain text/css text/xml text/javascript 
+                          application/javascript application/xml+rss 
+                          application/json image/svg+xml;
 
-                  location /_next/static/ {
-                      proxy_pass http://localhost:3000;
-                      proxy_cache_valid 200 1y;
-                      add_header Cache-Control "public, immutable";
-                  }
+                location /_next/static/ {
+                    proxy_pass http://localhost:3000;
+                    proxy_cache_valid 200 1y;
+                    add_header Cache-Control "public, immutable";
+                }
 
-                  location /_next/image {
-                      proxy_pass http://localhost:3000;
-                      proxy_cache_valid 200 1h;
-                  }
+                location /_next/image {
+                    proxy_pass http://localhost:3000;
+                    proxy_cache_valid 200 1h;
+                }
 
-                  location / {
-                      proxy_pass http://localhost:3000;
-                      proxy_http_version 1.1;
-                      proxy_set_header Upgrade $http_upgrade;
-                      proxy_set_header Connection 'upgrade';
-                      proxy_set_header Host $host;
-                      proxy_set_header X-Real-IP $remote_addr;
-                      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-                      proxy_set_header X-Forwarded-Proto $scheme;
-                      proxy_cache_bypass $http_upgrade;
-                      
-                      proxy_connect_timeout 60s;
-                      proxy_send_timeout 60s;
-                      proxy_read_timeout 60s;
-                  }
+                location / {
+                    proxy_pass http://localhost:3000;
+                    proxy_http_version 1.1;
+                    proxy_set_header Upgrade $http_upgrade;
+                    proxy_set_header Connection 'upgrade';
+                    proxy_set_header Host $host;
+                    proxy_set_header X-Real-IP $remote_addr;
+                    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                    proxy_set_header X-Forwarded-Proto $scheme;
+                    proxy_cache_bypass $http_upgrade;
+                    
+                    proxy_connect_timeout 60s;
+                    proxy_send_timeout 60s;
+                    proxy_read_timeout 60s;
+                }
 
-                  location /health {
-                      access_log off;
-                      return 200 "healthy\n";
-                      add_header Content-Type text/plain;
-                  }
-              }
-              EOF
+                location /health {
+                    access_log off;
+                    return 200 "healthy\n";
+                    add_header Content-Type text/plain;
+                }
+            }
+            EOF
 
               # Enable nginx site
-              sudo ln -sf /etc/nginx/sites-available/idlemmo-conquest /etc/nginx/sites-enabled/
+              sudo ln -sf /etc/nginx/sites-available/${{ env.APP_NAME }} /etc/nginx/sites-enabled/
               sudo rm -f /etc/nginx/sites-enabled/default
 
               # Test and reload nginx
@@ -177,7 +184,7 @@ jobs:
               --cwd "${{ env.DEPLOY_PATH }}" \
               --env NODE_ENV=production \
               --env PORT=3000 \
-              --max-memory-restart 512M
+              --max-memory-restart 1024M
 
             # Save PM2 configuration
             pm2 save
@@ -187,3 +194,5 @@ jobs:
 
             # Clean up
             pnpm store prune
+
+            echo "Deployment completed successfully!"
