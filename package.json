@@ -2,6 +2,9 @@
   "name": "conquest-leaderboard",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "pnpm": "10"
+  },
   "scripts": {
     "dev": "npm run drizzle:dev:push && next dev --turbopack",
     "build": "next build",
