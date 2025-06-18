@@ -31,5 +31,4 @@ jobs:
         run: pnpm run build
         env:
           DB_FILE_NAME: ${{ secrets.DB_FILE_NAME }}
-          NEXT_PUBLIC_BASE_API_URL: ${{ secrets.NEXT_PUBLIC_BASE_API_URL }}
           SECRET_API_KEY: ${{ secrets.SECRET_API_KEY }}

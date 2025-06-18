@@ -24,8 +24,8 @@ const getGuilds = async (): Promise<Response> => {
   let lastUpdated: string;
   try {
     const now = getISOTime();
-    const currentSeason = cache.has('season')
-      ? cache.get<Pick<SeasonSelectType, 'seasonNumber'>>('season')
+    const currentSeason = cache.has(cacheKeys.seasons)
+      ? cache.get<Pick<SeasonSelectType, 'seasonNumber'>>(cacheKeys.seasons)
       : await db.query.seasons.findFirst({
           where: () => lt(seasons.startDate, now) && gt(seasons.endDate, now),
           columns: {
@@ -61,7 +61,7 @@ const getGuilds = async (): Promise<Response> => {
         g.icon_url AS "guildIcon",
         gsl.experience AS "totalExp",
         gsl.kills AS "kills",
-        ROUND(gsl.experience * 1.0 / NULLIF(gsl.kills, 0), 2) AS "killToExpRatio",
+        COALESCE(ROUND(gsl.experience * 1.0 / NULLIF(gsl.kills, 0), 2), 0) AS "killToExpRatio",
         COUNT(DISTINCT pcl.player_id) AS "participantsCount",
         p.name AS "bestPlayerName",
         p.image_url AS "bestPlayerAvatar",
