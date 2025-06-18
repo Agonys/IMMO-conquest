@@ -97,6 +97,7 @@ export const GuildsCard = ({ id }: GuildsCardProps) => {
                 alt={row.original.guildName}
                 height={48}
                 width={48}
+                quality={100}
                 className={cn('aspect-square w-8 rounded', 'sm:w-10', 'md:w-12', 'lg:w-14')}
               />
             }
@@ -137,6 +138,7 @@ export const GuildsCard = ({ id }: GuildsCardProps) => {
             target="_blank"
             rel="noopener noreferrer"
           >
+            {/* To be moved to separate <Image /> for optimization */}
             <div
               className="relative aspect-square h-16 w-16 shrink-0 overflow-hidden rounded-full border bg-cover bg-center opacity-80"
               style={{ backgroundImage: `url(${getPublicImagePath(player.background)})` }}
@@ -145,6 +147,8 @@ export const GuildsCard = ({ id }: GuildsCardProps) => {
                 src={getPublicImagePath(player.avatar)}
                 alt={player.name}
                 fill
+                quality={100}
+                priority={true}
                 sizes="(min-width:320px) 100vw, 100vw"
                 className="absolute !top-2 left-0 aspect-square !h-16 !w-auto rounded brightness-120"
               />

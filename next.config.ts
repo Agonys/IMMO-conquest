@@ -4,7 +4,7 @@ const nextConfig: NextConfig = {
   devIndicators: false,
   serverExternalPackages: ['pino', 'pino-pretty'],
   images: {
-    remotePatterns: [new URL('https://cdn.idle-mmo.com/**')],
+    remotePatterns: [new URL('https://idlemmo-conquest.com/**')],
   },
   allowedDevOrigins: ['192.168.0.87'],
 };

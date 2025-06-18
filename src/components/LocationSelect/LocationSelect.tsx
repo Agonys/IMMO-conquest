@@ -104,6 +104,8 @@ export const LocationSelect = ({ locations, onSelect }: LocationSelectProps) => 
                 src={getPublicImagePath(currentLocation.backgroundUrl)}
                 alt={currentLocation?.name || ''}
                 sizes="(min-width: 320px) 100vw, 100vw"
+                quality={100}
+                priority={true}
                 className={cn(
                   'absolute top-0 right-0 bottom-0 my-auto h-auto w-full opacity-30',
                   'mask-l-from-black mask-l-from-0% mask-l-to-transparent mask-l-to-80%',
@@ -154,6 +156,8 @@ export const LocationSelect = ({ locations, onSelect }: LocationSelectProps) => 
                       src={getPublicImagePath(location?.backgroundUrl) || ''}
                       alt={location?.name || ''}
                       sizes="(min-width: 320px) 100vw, 100vw"
+                      quality={100}
+                      priority={true}
                       className={cn('absolute z-10 object-cover object-center')}
                     />
                     <span className="text-outline-black text-foreground relative z-30 w-full p-4 font-semibold">
@@ -199,6 +203,8 @@ export const LocationSelect = ({ locations, onSelect }: LocationSelectProps) => 
               src={getPublicImagePath(currentLocation.backgroundUrl) || ''}
               alt={currentLocation?.name || ''}
               sizes="(min-width: 320px) 100vw, 100vw"
+              quality={100}
+              priority={true}
               className="absolute h-full w-full object-cover brightness-40"
             />
           )}
