@@ -4,19 +4,19 @@ import { logger } from './utils/logger';
 
 const isProduction = process.env.NODE_ENV === 'production';
 const corsOrigins = ['https://idlemmo-conquest.com'];
+const blockedSites: string[] = [];
 
 function isAllowedOrigin(origin: string | null) {
   if (!isProduction) return true;
   return origin && corsOrigins.includes(origin);
 }
 
-function isAllowedReferer(referer: string | null) {
-  if (!isProduction) return true;
-  if (!referer) return false;
+function isBlockedReferer(referer: string | null) {
+  if (isProduction || referer === null) return false;
 
   try {
     const url = new URL(referer);
-    return corsOrigins.includes(url.origin);
+    return blockedSites.includes(url.host);
   } catch {
     return false;
   }
@@ -34,7 +34,7 @@ export function middleware(req: NextRequest) {
 
   if (!ip) return new Response('No ip found', { status: 403 });
 
-  if (!isAllowedReferer(referer)) {
+  if (isBlockedReferer(referer)) {
     logger.warn({ ip, referer, req }, 'Blocked: Referer Forbidden');
     return new NextResponse('Referer Forbidden', { status: 403 });
   }
