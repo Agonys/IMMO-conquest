@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server';
 import { ZodError } from 'zod';
-import { DataGatherFromSiteSchema } from '@/db/types';
+import { DatabaseDataUpdateSchema } from '@/db/types';
 import { transformAndUpdateDatabase } from '@/scripts/transformAndUpdateDatabase';
 import { cache } from '@/services';
 import { formatApiZodError, logger, withErrorHandler } from '@/utils';
@@ -20,12 +20,16 @@ const putDataIntoDB = async (req: NextRequest): Promise<Response> => {
   try {
     const body = await req.json();
 
-    const parsedData = DataGatherFromSiteSchema.parse(body);
-    if (!parsedData.length) {
+    const { data, initialData, isInitialImport } = DatabaseDataUpdateSchema.parse(body);
+    if (!data.length) {
       throw new Error('No data provided');
     }
 
-    const time = await transformAndUpdateDatabase({ data: body });
+    if (isInitialImport && !initialData) {
+      throw new Error('Inital import without initial data');
+    }
+
+    const time = await transformAndUpdateDatabase({ data, isInitialImport, initialData });
     logger.info(`database update took ${time}s, clearing cache`);
     cache.clear();
   } catch (error: unknown) {
@@ -35,7 +39,7 @@ const putDataIntoDB = async (req: NextRequest): Promise<Response> => {
     }
 
     if (error instanceof Error) {
-      logger.error({ error: error.message });
+      logger.error(error);
       return Response.json({ error: error.message }, { status: 400 });
     }
   }

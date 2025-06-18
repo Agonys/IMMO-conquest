@@ -236,7 +236,7 @@ export const GuildsCard = ({ id }: GuildsCardProps) => {
           <span className="text-foreground-darker text-sm">Track which guild rules the region</span>
           {guildsList?.updatedAt && (
             <span className="text-foreground-darker text-xs">
-              Last update: {new Date(guildsList.updatedAt).toLocaleString()} UTC
+              Last update: {new Date(guildsList.updatedAt).toLocaleString()}
             </span>
           )}
         </div>

@@ -33,7 +33,7 @@ const getGuilds = async (): Promise<Response> => {
 
     if (!currentSeason) {
       logger.warn({ currentSeason }, "Season couldn't be found. Maybe theres isn't one?");
-      return Response.json({ error: 'No season has started yet' }, { status: 500 });
+      return Response.json({ error: 'No season has started yet' }, { status: 404 });
     }
 
     const dbResult = (await db.values(sql`

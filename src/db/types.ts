@@ -115,4 +115,19 @@ export const DataGatherFromSiteSchema = z.array(
   }),
 );
 
+export const DatabaseDataUpdateSchema = z.object({
+  data: DataGatherFromSiteSchema,
+  isInitialImport: z.boolean().optional(),
+  initialData: z
+    .object({
+      season: z.object({
+        id: z.number().int().optional(),
+        seasonNumber: z.number().int(),
+        startDate: z.string().datetime(),
+        endDate: z.string().datetime(),
+      }),
+    })
+    .optional(),
+});
+
 export type DataGatherFromSite = z.infer<typeof DataGatherFromSiteSchema>;
