@@ -146,6 +146,10 @@ export const transformAndUpdateDatabase = async ({
         .values(seasonData)
         .onConflictDoNothing({ target: seasons.id })
         .returning();
+
+      if (insertedSeason.length === 0) {
+        throw new Error('Trying to insert initial season data when season data is already in database.');
+      }
     }
 
     await tx
@@ -182,7 +186,7 @@ export const transformAndUpdateDatabase = async ({
       })
       .returning();
 
-    if (insertedSeason?.length && insertedSeason[0].id) {
+    if (insertedSeason[0].id) {
       seasonId = insertedSeason[0].id;
     } else {
       const [ongoingSeason] = await tx
