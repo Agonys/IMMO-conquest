@@ -1,13 +1,14 @@
-name: Build Check
+name: Build (Production)
 
 on:
-  pull_request:
+  push:
     branches:
-      - '**'
+      - main
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    environment: production
 
     steps:
       - name: Checkout code
@@ -28,3 +29,7 @@ jobs:
 
       - name: Build project
         run: pnpm run build
+        env:
+          DB_FILE_NAME: ${{ secrets.DB_FILE_NAME }}
+          NEXT_PUBLIC_BASE_API_URL: ${{ secrets.NEXT_PUBLIC_BASE_API_URL }}
+          SECRET_API_KEY: ${{ secrets.SECRET_API_KEY }}
