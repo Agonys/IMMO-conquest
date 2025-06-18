@@ -3,16 +3,17 @@ import { rateLimit } from '@/middlewares';
 import { logger } from './utils/logger';
 
 const isProduction = process.env.NODE_ENV === 'production';
-const corsOrigins = isProduction
-  ? ['https://idlemmo-conquest.com']
-  : ['http://localhost:3000', 'http://localhost:3001'];
+const corsOrigins = ['https://idlemmo-conquest.com'];
 
 function isAllowedOrigin(origin: string | null) {
+  if (!isProduction) return true;
   return origin && corsOrigins.includes(origin);
 }
 
 function isAllowedReferer(referer: string | null) {
-  if (!referer) return true;
+  if (!isProduction) return true;
+  if (!referer) return false;
+
   try {
     const url = new URL(referer);
     return corsOrigins.includes(url.origin);
@@ -26,12 +27,12 @@ export function middleware(req: NextRequest) {
   const origin = req.headers.get('origin');
   const referer = req.headers.get('referer');
   const { method } = req;
-  const ip = (req.headers.get('x-forwarded-for') ?? '127.0.0.1').split(',')[0];
 
-  if (method !== 'GET' && method !== 'OPTIONS') {
-    logger.warn({ ip, method, req }, 'Blocked: Method Not Allowed');
-    return new NextResponse('Method Not Allowed', { status: 405 });
-  }
+  const forwardedFor = req.headers.get('x-forwarded-for');
+  if (!forwardedFor) return new Response('No ip found', { status: 403 });
+  const ip = forwardedFor.split(',')[0];
+
+  if (!ip) return new Response('No ip found', { status: 403 });
 
   if (!isAllowedReferer(referer)) {
     logger.warn({ ip, referer, req }, 'Blocked: Referer Forbidden');
@@ -49,17 +50,22 @@ export function middleware(req: NextRequest) {
   }
 
   response.headers.set('Access-Control-Allow-Credentials', 'true');
-  response.headers.set('Access-Control-Allow-Methods', 'GET,OPTIONS');
+  response.headers.set('Access-Control-Allow-Methods', 'POST,GET,OPTIONS');
   response.headers.set('Access-Control-Allow-Headers', 'Content-Type');
 
   if (method === 'OPTIONS') {
     return response;
   }
 
-  if (rateLimit(ip)) {
+  const rateLimitResponse = rateLimit(ip);
+
+  if (rateLimitResponse.isBlocked) {
     logger.warn({ ip, origin, referer, req }, 'User rate limited');
     return new NextResponse('ey ey ey, slow down', { status: 429 });
   }
+
+  response.headers.set('X-Ratelimit-Limit', `${rateLimitResponse.limit}`);
+  response.headers.set('X-Ratelimit-Remaining', `${rateLimitResponse.remaining}`);
 
   return response;
 }

@@ -1,13 +1,15 @@
 import { useQuery } from 'react-query';
-import { apiClient } from '@/services/axios';
+import { apiClient } from '@/services';
+import { GetGuildsResponse } from '@/types/guilds';
 
-const getGuilds = (locationName = 'all') => {
-  return apiClient.get(`/guilds?location=${locationName}`);
+const getGuilds = async () => {
+  const result = await apiClient.get<GetGuildsResponse>(`/guilds`);
+  return result.data;
 };
 
-export const useGetGuilds = (locationName?: string) => {
+export const useGetGuilds = () => {
   return useQuery({
-    queryKey: ['get-guilds', locationName],
-    queryFn: () => getGuilds(locationName),
+    queryKey: ['get-guilds'],
+    queryFn: getGuilds,
   });
 };

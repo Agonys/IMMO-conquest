@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@isaacs/ttlcache':
+        specifier: ^1.4.1
+        version: 1.4.1
       '@libsql/client':
         specifier: ^0.15.9
         version: 0.15.9
@@ -32,6 +35,9 @@ importers:
       drizzle-orm:
         specifier: ^0.44.2
         version: 0.44.2(@libsql/client@0.15.9)(@types/better-sqlite3@7.6.13)(better-sqlite3@11.10.0)
+      drizzle-zod:
+        specifier: ^0.8.2
+        version: 0.8.2(drizzle-orm@0.44.2(@libsql/client@0.15.9)(@types/better-sqlite3@7.6.13)(better-sqlite3@11.10.0))(zod@3.25.63)
       lucide-react:
         specifier: ^0.513.0
         version: 0.513.0(react@19.1.0)
@@ -56,6 +62,12 @@ importers:
       tailwind-merge:
         specifier: ^3.3.1
         version: 3.3.1
+      uuid:
+        specifier: ^11.1.0
+        version: 11.1.0
+      zod:
+        specifier: ^3.25.1
+        version: 3.25.63
     devDependencies:
       '@eslint/eslintrc':
         specifier: ^3
@@ -638,6 +650,10 @@ packages:
   '@isaacs/fs-minipass@4.0.1':
     resolution: {integrity: sha512-wgm9Ehl2jpeqP3zw/7mo3kRHFp5MEDhqAdwy1fTGkHAwnkGOVsgpvQhL8B5n1qlb01jV3n/bI0ZfZp5lWA1k4w==}
     engines: {node: '>=18.0.0'}
+
+  '@isaacs/ttlcache@1.4.1':
+    resolution: {integrity: sha512-RQgQ4uQ+pLbqXfOmieB91ejmLwvSgv9nLx6sT6sD83s7umBypgg+OIBOBbEUiJXrfpnp9j0mRhYYdzp9uqq3lA==}
+    engines: {node: '>=12'}
 
   '@jridgewell/gen-mapping@0.3.8':
     resolution: {integrity: sha512-imAbBGkb+ebQyxKgzv5Hu2nmROxoDOXHh80evxdoXNOrvAnVx7zimzc1Oo5h9RlfV4vPXaE2iM5pOFbvOCClWA==}
@@ -1500,6 +1516,12 @@ packages:
         optional: true
       sqlite3:
         optional: true
+
+  drizzle-zod@0.8.2:
+    resolution: {integrity: sha512-9Do/16OjFFNrQDZgvMtxtDDwKWbFOxUAIwNPKX98SfxrP8H18vhN1BvNXbhelLcdgCE7GEaXDJqBjMExSkhpkA==}
+    peerDependencies:
+      drizzle-orm: '>=0.36.0'
+      zod: ^3.25.1
 
   dunder-proto@1.0.1:
     resolution: {integrity: sha512-KIN/nDJBQRcXw0MLVhZE9iQHmG68qAVIBg9CqmUYjmQIhgij9U5MFvrqkUL5FbtyyzZuOeOt0zdeRe4UY7ct+A==}
@@ -2933,6 +2955,10 @@ packages:
   util-deprecate@1.0.2:
     resolution: {integrity: sha512-EPD5q1uXyFxJpCrLnCc1nHnq3gOa6DZBocAIiI2TaSCA7VCJ1UJDMagCzIkXNsUYfD1daK//LTEQ8xiIbrHtcw==}
 
+  uuid@11.1.0:
+    resolution: {integrity: sha512-0/A9rDy9P7cJ+8w1c9WD9V//9Wj15Ce2MPz8Ri6032usz+NfePxx5AcN3bN+r6ZL6jEo066/yNYB3tn4pQEx+A==}
+    hasBin: true
+
   web-streams-polyfill@3.3.3:
     resolution: {integrity: sha512-d2JWLCivmZYTSIoge9MsgFCZrt571BikcWGYkjC1khllbTeDlGqZ2D8vD8E/lJa8WGWbb7Plm8/XJYV7IJHZZw==}
     engines: {node: '>= 8'}
@@ -2993,6 +3019,9 @@ packages:
   yocto-queue@0.1.0:
     resolution: {integrity: sha512-rVksvsnNCdJ/ohGc6xgPwyN8eheCxsiLM8mxuE/t/mOVqJewPuO1miLpTHQiRgTKCLexL4MeAFVagts7HmNZ2Q==}
     engines: {node: '>=10'}
+
+  zod@3.25.63:
+    resolution: {integrity: sha512-3ttCkqhtpncYXfP0f6dsyabbYV/nEUW+Xlu89jiXbTBifUfjaSqXOG6JnQPLtqt87n7KAmnMqcjay6c0Wq0Vbw==}
 
 snapshots:
 
@@ -3360,6 +3389,8 @@ snapshots:
   '@isaacs/fs-minipass@4.0.1':
     dependencies:
       minipass: 7.1.2
+
+  '@isaacs/ttlcache@1.4.1': {}
 
   '@jridgewell/gen-mapping@0.3.8':
     dependencies:
@@ -4113,6 +4144,11 @@ snapshots:
       '@libsql/client': 0.15.9
       '@types/better-sqlite3': 7.6.13
       better-sqlite3: 11.10.0
+
+  drizzle-zod@0.8.2(drizzle-orm@0.44.2(@libsql/client@0.15.9)(@types/better-sqlite3@7.6.13)(better-sqlite3@11.10.0))(zod@3.25.63):
+    dependencies:
+      drizzle-orm: 0.44.2(@libsql/client@0.15.9)(@types/better-sqlite3@7.6.13)(better-sqlite3@11.10.0)
+      zod: 3.25.63
 
   dunder-proto@1.0.1:
     dependencies:
@@ -5797,6 +5833,8 @@ snapshots:
 
   util-deprecate@1.0.2: {}
 
+  uuid@11.1.0: {}
+
   web-streams-polyfill@3.3.3: {}
 
   which-boxed-primitive@1.1.1:
@@ -5861,3 +5899,5 @@ snapshots:
   yaml@2.8.0: {}
 
   yocto-queue@0.1.0: {}
+
+  zod@3.25.63: {}

@@ -1,8 +1,7 @@
 import axios from 'axios';
 
 export const apiClient = axios.create({
-  // baseURL: process.env.BASE_API_URL,
-  baseURL: 'http://localhost:3000/api',
+  baseURL: '/api',
   headers: {
     'Content-Type': 'application/json',
   },
@@ -13,7 +12,7 @@ apiClient.interceptors.request.use((config) => {
 });
 
 apiClient.interceptors.response.use(
-  (response) => response.data,
+  (response) => response,
   async (error) => {
     return Promise.reject({
       status: error.response?.status,

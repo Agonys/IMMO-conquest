@@ -1,1 +1,3 @@
 export { useGetGuilds } from './useGetGuilds';
+export { useGetLocations } from './useGetLocations';
+export { useGetCurrentSeason } from './useGetCurrentSeason';
