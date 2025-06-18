@@ -7,7 +7,7 @@ on:
 
 env:
   APP_NAME: idlemmo-conquest
-  DEPLOY_PATH: /home/frog/idlemmo-conquest
+  DEPLOY_PATH: /home/${{ secrets.VPS_USER }}/idlemmo-conquest
 
 jobs:
   build:
@@ -39,6 +39,7 @@ jobs:
 
   deploy:
     needs: build
+    environment: production
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
@@ -50,7 +51,7 @@ jobs:
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.VPS_HOST }}
-          username: frog
+          username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
           port: ${{ secrets.VPS_PORT }}
           timeout: 600s
