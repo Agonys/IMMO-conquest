@@ -47,7 +47,7 @@ export const decideSeason = ({
   return {
     type: 'create',
     newSeason: {
-      seasonNumber: lastSeason.seasonNumber,
+      seasonNumber: lastSeason.seasonNumber + 1,
       startDate: newSeasonStart,
       endDate: newSeasonEnd,
     },

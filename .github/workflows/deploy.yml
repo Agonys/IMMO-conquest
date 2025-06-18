@@ -1,0 +1,113 @@
+name: Build and Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  APP_NAME: idlemmo-conquest
+  DEPLOY_PATH: /home/${{ secrets.VPS_USER }}/idlemmo-conquest
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 10
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build project
+        run: pnpm build
+        env:
+          DB_FILE_NAME: ${{ secrets.DB_FILE_NAME }}
+          SECRET_API_KEY: ${{ secrets.SECRET_API_KEY }}
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to VPS
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT }}
+          timeout: 600s
+          script: |
+            set -e
+
+            # Install dependencies if needed
+            if ! command -v node &> /dev/null; then
+              sudo apk add --no-cache nodejs npm
+            fi
+
+            if ! command -v pnpm &> /dev/null; then
+              sudo npm install -g pnpm
+            fi
+
+            if ! command -v pm2 &> /dev/null; then
+              sudo npm install -g pm2
+            fi
+
+            # Create deployment directory
+            mkdir -p ${{ env.DEPLOY_PATH }}
+            cd ${{ env.DEPLOY_PATH }}
+
+            # Install git if not exists
+            if ! command -v git &> /dev/null; then
+              sudo apk add --no-cache git
+            fi
+
+            # Clone or pull latest changes
+            if [ -d ".git" ]; then
+              git fetch origin
+              git reset --hard origin/main
+            else
+              git clone ${{ github.server_url }}/${{ github.repository }} .
+            fi
+
+            # Create .env file
+            echo '${{ secrets.ENV_FILE }}' > .env
+            chmod 600 .env
+
+            # Install dependencies and build
+            pnpm install --frozen-lockfile --prod
+            pnpm build
+
+            # Stop existing PM2 process if running
+            pm2 delete ${{ env.APP_NAME }} 2>/dev/null || true
+
+            # Do all migrations for database
+            pnpm run drizzle:migrate
+
+            # Start new PM2 process with pnpm
+            pm2 start "pnpm start" \
+              --name "${{ env.APP_NAME }}" \
+              --cwd "${{ env.DEPLOY_PATH }}" \
+              --env NODE_ENV=production \
+              --env PORT=3000
+
+            # Save PM2 configuration
+            pm2 save
