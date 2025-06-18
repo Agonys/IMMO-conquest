@@ -11,7 +11,7 @@ env:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     environment: production
 
     steps:
@@ -37,50 +37,13 @@ jobs:
           DB_FILE_NAME: ${{ secrets.DB_FILE_NAME }}
           SECRET_API_KEY: ${{ secrets.SECRET_API_KEY }}
 
-      # - name: Create deployment package
-      #   run: |
-      #     # Create a deployment archive with only necessary files
-      #     tar -czf deploy.tar.gz \
-      #       .next \
-      #       public \
-      #       package.json \
-      #       pnpm-lock.yaml \
-      #       next.config.* \
-      #       drizzle \
-      #       src/lib/db \
-      #       --exclude=node_modules \
-      #       --exclude=.git \
-      #       --exclude=.next/cache
-
-      # - name: Upload deployment package
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     name: deployment-package
-      #     path: deploy.tar.gz
-      #     retention-days: 1
-
   deploy:
     needs: build
     environment: production
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     timeout-minutes: 15
 
     steps:
-      # - name: Download deployment package
-      #   uses: actions/download-artifact@v4
-      #   with:
-      #     name: deployment-package
-
-      # - name: Copy deployment package to VPS
-      #   uses: appleboy/scp-action@v0.1.7
-      #   with:
-      #     host: ${{ secrets.VPS_HOST }}
-      #     username: ${{ secrets.VPS_USER }}
-      #     key: ${{ secrets.VPS_SSH_KEY }}
-      #     port: ${{ secrets.VPS_PORT }}
-      #     source: 'deploy.tar.gz'
-      #     target: '/tmp/'
-
       - name: Deploy to VPS
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -92,15 +55,21 @@ jobs:
           script: |
             set -e
 
-            # Install dependencies if needed
-            if ! command -v node &> /dev/null; then
-              sudo apk add --no-cache nodejs npm
+            # Update package list
+            sudo apt update
+
+            # Install Node.js 22 if not present
+            if ! command -v node &> /dev/null || [[ $(node -v | cut -d'.' -f1 | cut -d'v' -f2) -lt 22 ]]; then
+              curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
+              sudo apt-get install -y nodejs
             fi
 
+            # Install pnpm if not present
             if ! command -v pnpm &> /dev/null; then
               sudo npm install -g pnpm
             fi
 
+            # Install PM2 if not present
             if ! command -v pm2 &> /dev/null; then
               sudo npm install -g pm2
             fi
@@ -112,13 +81,22 @@ jobs:
             # Stop existing PM2 process before deployment
             pm2 delete ${{ env.APP_NAME }} 2>/dev/null || true
 
+            # Clone/pull latest code
+            if [ ! -d ".git" ]; then
+              git clone ${{ github.server_url }}/${{ github.repository }}.git .
+            else
+              git fetch origin
+              git reset --hard origin/main
+            fi
+
             # Create .env file
             echo '${{ secrets.ENV_FILE }}' > .env
             chmod 600 .env
 
-            # Install only production dependencies (much faster and less memory)
+            # Install dependencies and build
             export NODE_OPTIONS="--max-old-space-size=1024"
-            pnpm install --prod --frozen-lockfile
+            pnpm install --frozen-lockfile
+            pnpm build
 
             # Run database migrations
             pnpm run drizzle:migrate
@@ -129,10 +107,13 @@ jobs:
               --cwd "${{ env.DEPLOY_PATH }}" \
               --env NODE_ENV=production \
               --env PORT=3000 \
-              --max-memory-restart 200M
+              --max-memory-restart 512M
 
             # Save PM2 configuration
             pm2 save
+
+            # Setup PM2 startup script (run once)
+            sudo env PATH=$PATH:/usr/bin pm2 startup systemd -u ${{ secrets.VPS_USER }} --hp /home/${{ secrets.VPS_USER }} || true
 
             # Clean up
             pnpm store prune
