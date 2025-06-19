@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
 import { GoogleAnalytics } from '@next/third-parties/google';
 import './globals.css';
@@ -9,6 +9,10 @@ const inter = Inter({
 });
 
 const pageDomain = process.env.NEXT_PUBLIC_PAGE_DOMAIN || 'https://idlemmo-conquest.com';
+
+export const viewport: Viewport = {
+  themeColor: '#fcc800',
+};
 
 export const metadata: Metadata = {
   title: 'IdleMMO Conquest',
@@ -43,9 +47,9 @@ export const metadata: Metadata = {
     locale: 'en_US',
     images: [
       {
-        url: `<${pageDomain}/logo.png>`,
-        width: 80,
-        height: 80,
+        url: `${pageDomain}/logo.png`,
+        width: 1260,
+        height: 630,
         alt: 'Logo',
       },
     ],
