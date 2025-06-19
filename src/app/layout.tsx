@@ -43,9 +43,9 @@ export const metadata: Metadata = {
     locale: 'en_US',
     images: [
       {
-        url: `${pageDomain}/logo.png`,
-        width: 512,
-        height: 512,
+        url: `<${pageDomain}/logo.png>`,
+        width: 80,
+        height: 80,
         alt: 'Logo',
       },
     ],
