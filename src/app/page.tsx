@@ -4,6 +4,8 @@ import { QueryCache, QueryClient, QueryClientProvider } from 'react-query';
 import { GuildsCard, PlayersCard, SummaryCard } from '@/components/Cards';
 import { ClientOnly } from '@/components/ClientOnly';
 import { Container } from '@/components/Container';
+import { Footer } from '@/components/Footer';
+import { Navbar } from '@/components/Navbar';
 import { Search } from '@/components/Search';
 import { Tabs } from '@/components/Tabs';
 
@@ -25,12 +27,7 @@ export default function Home() {
   return (
     <QueryClientProvider client={queryClient}>
       <div className="text-foreground flex min-h-screen flex-col">
-        <header className="bg-card border-b">
-          <Container className="mx-auto">
-            <h1 className="text-yellow-light text-3xl font-bold uppercase">Conquest</h1>
-            {/* <Settings className="absolute right-4" /> */}
-          </Container>
-        </header>
+        <Navbar />
 
         <main className="flex-1">
           <Container className="flex-col gap-8 py-8 pt-10">
@@ -50,6 +47,8 @@ export default function Home() {
             </ClientOnly>
           </Container>
         </main>
+
+        <Footer />
       </div>
     </QueryClientProvider>
   );
