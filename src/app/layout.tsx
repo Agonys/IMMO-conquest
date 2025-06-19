@@ -12,6 +12,9 @@ const pageDomain = process.env.NEXT_PUBLIC_PAGE_DOMAIN || 'https://idlemmo-conqu
 
 export const viewport: Viewport = {
   themeColor: '#fcc800',
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
 };
 
 export const metadata: Metadata = {
@@ -41,16 +44,14 @@ export const metadata: Metadata = {
     title: 'IdleMMO Conquest',
     description:
       'IdleMMO guilds conquest leaderboard: see which guilds are fighting for dominance against other players in epic battles!',
-    type: 'website',
     url: pageDomain,
     siteName: 'IdleMMO Conquest',
     locale: 'en_US',
     images: [
       {
-        url: `${pageDomain}/logo.png`,
-        width: 1260,
-        height: 630,
-        alt: 'Logo',
+        url: `${pageDomain}/logo_white.png`,
+        width: 80,
+        height: 80,
       },
     ],
   },
