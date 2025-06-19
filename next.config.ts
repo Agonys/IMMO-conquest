@@ -29,7 +29,7 @@ const nextConfig: NextConfig = {
             key: 'Content-Security-Policy',
             value: [
               "default-src 'self';",
-              "script-src 'self' 'unsafe-inline' 'unsafe-eval' data: https://www.googletagmanager.com https://www.google-analytics.com;",
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval' data: https://www.googletagmanager.com https://www.google-analytics.com https://*.cloudflareinsights.com/;",
               "img-src 'self' data: https:;",
               "connect-src 'self' https://www.google-analytics.com https://region1.google-analytics.com;",
               "style-src 'self' 'unsafe-inline';",
