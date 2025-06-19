@@ -146,6 +146,7 @@ export const GuildsCard = ({ id }: GuildsCardProps) => {
                 fill
                 quality={100}
                 priority
+                sizes="(min-width:320px) 100vw, 100vw"
                 className="absolute top-0 right-0 bottom-0 left-0 z-0 m-auto"
               />
               {/* Avatar */}
@@ -154,7 +155,7 @@ export const GuildsCard = ({ id }: GuildsCardProps) => {
                 alt={player.name}
                 fill
                 quality={100}
-                priority={true}
+                priority
                 sizes="(min-width:320px) 100vw, 100vw"
                 className="absolute !top-2 left-0 z-10 aspect-square !h-16 !w-auto rounded brightness-120"
               />

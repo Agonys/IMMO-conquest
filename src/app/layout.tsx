@@ -8,6 +8,8 @@ const inter = Inter({
   subsets: ['latin'],
 });
 
+const pageDomain = process.env.NEXT_PUBLIC_PAGE_DOMAIN || 'https://idlemmo-conquest.com';
+
 export const metadata: Metadata = {
   title: 'IdleMMO Conquest',
   description:
@@ -36,12 +38,12 @@ export const metadata: Metadata = {
     description:
       'IdleMMO guilds conquest leaderboard: see which guilds are fighting for dominance against other players in epic battles!',
     type: 'website',
-    url: 'https://idlemmo-conquest.com',
+    url: pageDomain,
     siteName: 'IdleMMO Conquest',
     locale: 'en_US',
     images: [
       {
-        url: `${process.env.NEXT_PUBLIC_PAGE_DOMAIN}/logo.png`,
+        url: `${pageDomain}/logo.png`,
         width: 512,
         height: 512,
         alt: 'Logo',
