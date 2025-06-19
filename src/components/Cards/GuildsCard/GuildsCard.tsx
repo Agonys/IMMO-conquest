@@ -138,11 +138,17 @@ export const GuildsCard = ({ id }: GuildsCardProps) => {
             target="_blank"
             rel="noopener noreferrer"
           >
-            {/* To be moved to separate <Image /> for optimization */}
-            <div
-              className="relative aspect-square h-16 w-16 shrink-0 overflow-hidden rounded-full border bg-cover bg-center opacity-80"
-              style={{ backgroundImage: `url(${getPublicImagePath(player.background)})` }}
-            >
+            <div className="relative aspect-square h-16 w-16 shrink-0 overflow-hidden rounded-full border">
+              {/* BG */}
+              <Image
+                src={getPublicImagePath(player.background)}
+                alt="background"
+                fill
+                quality={100}
+                priority
+                className="absolute top-0 right-0 bottom-0 left-0 z-0 m-auto"
+              />
+              {/* Avatar */}
               <Image
                 src={getPublicImagePath(player.avatar)}
                 alt={player.name}
@@ -150,7 +156,7 @@ export const GuildsCard = ({ id }: GuildsCardProps) => {
                 quality={100}
                 priority={true}
                 sizes="(min-width:320px) 100vw, 100vw"
-                className="absolute !top-2 left-0 aspect-square !h-16 !w-auto rounded brightness-120"
+                className="absolute !top-2 left-0 z-10 aspect-square !h-16 !w-auto rounded brightness-120"
               />
             </div>
             <div className="flex flex-col gap-1">
@@ -259,32 +265,36 @@ export const GuildsCard = ({ id }: GuildsCardProps) => {
           '',
         )}
       >
-        {table.getHeaderGroups().map((headerGroup) =>
-          headerGroup.headers.map((header) => {
-            return (
-              <div key={header.id} className={cn('p-2 text-base font-bold text-gray-300 md:text-lg')}>
-                {flexRender(header.column.columnDef.header, header.getContext())}
-              </div>
-            );
-          }),
-        )}
+        {table.getHeaderGroups().map((headerGroup) => {
+          return (
+            <div className="col-span-full grid w-full grid-cols-[inherit]" key={headerGroup.id}>
+              {headerGroup.headers.map((header) => (
+                <div key={header.id} className={cn('p-2 text-base font-bold text-gray-300 md:text-lg')}>
+                  {flexRender(header.column.columnDef.header, header.getContext())}
+                </div>
+              ))}
+            </div>
+          );
+        })}
 
-        {table.getRowModel().rows.map((row, i) =>
-          row.getVisibleCells().map((cell) => {
-            return (
-              <div
-                key={cell.id}
-                className={cn(
-                  'flex items-center border-b p-2 text-sm font-bold md:text-base',
-                  cell.column.id === 'position' && 'justify-center',
-                  i % 2 === 1 && 'bg-black/10',
-                )}
-              >
-                {flexRender(cell.column.columnDef.cell, cell.getContext())}
-              </div>
-            );
-          }),
-        )}
+        {table.getRowModel().rows.map((row, i) => {
+          return (
+            <div className="col-span-full grid w-full grid-cols-[inherit]" key={row.id}>
+              {row.getVisibleCells().map((cell) => (
+                <div
+                  key={cell.id}
+                  className={cn(
+                    'flex items-center border-b p-2 text-sm font-bold md:text-base',
+                    cell.column.id === 'position' && 'justify-center',
+                    i % 2 === 1 && 'bg-black/10',
+                  )}
+                >
+                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                </div>
+              ))}
+            </div>
+          );
+        })}
       </div>
       <PaginationControls table={table} />
     </div>

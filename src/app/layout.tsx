@@ -10,7 +10,44 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: 'IdleMMO Conquest',
-  description: 'Leaderboard of players and guilds throughout various seasons of conquest in IdleMMO',
+  description:
+    'IdleMMO guilds conquest leaderboard: see which guilds are fighting for dominance against other players in epic battles!',
+  icons: [
+    {
+      rel: 'icon',
+      type: 'image/png',
+      sizes: '32x32',
+      url: './favicon-32x32.png',
+    },
+    {
+      rel: 'icon',
+      type: 'image/png',
+      sizes: '16x16',
+      url: './favicon-16x16.png',
+    },
+    {
+      rel: 'apple-touch-icon',
+      sizes: '180x180',
+      url: './apple-touch-icon.png',
+    },
+  ],
+  openGraph: {
+    title: 'IdleMMO Conquest',
+    description:
+      'IdleMMO guilds conquest leaderboard: see which guilds are fighting for dominance against other players in epic battles!',
+    type: 'website',
+    url: 'https://idlemmo-conquest.com',
+    siteName: 'IdleMMO Conquest',
+    locale: 'en_US',
+    images: [
+      {
+        url: `${process.env.NEXT_PUBLIC_PAGE_DOMAIN}/logo.png`,
+        width: 512,
+        height: 512,
+        alt: 'Logo',
+      },
+    ],
+  },
 };
 
 export default function RootLayout({

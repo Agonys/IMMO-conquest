@@ -5,7 +5,6 @@ const nextConfig: NextConfig = {
   serverExternalPackages: ['pino', 'pino-pretty'],
   images: {
     remotePatterns: [new URL('https://idlemmo-conquest.com/**')],
-    unoptimized: true,
   },
   allowedDevOrigins: ['192.168.0.87'],
   async headers() {
@@ -28,8 +27,17 @@ const nextConfig: NextConfig = {
           },
           {
             key: 'Content-Security-Policy',
-            value:
-              "default-src 'self'; script-src 'self' https://www.googletagmanager.com https://www.google-analytics.com; img-src 'self' data: https:; connect-src 'self' https://www.google-analytics.com https://region1.google-analytics.com; style-src 'self' 'unsafe-inline'; frame-src https://www.googletagmanager.com; object-src 'none'; base-uri 'self'; frame-ancestors 'none';",
+            value: [
+              "default-src 'self';",
+              "script-src 'self' https://www.googletagmanager.com https://www.google-analytics.com;",
+              "img-src 'self' data: https:;",
+              "connect-src 'self' https://www.google-analytics.com https://region1.google-analytics.com;",
+              "style-src 'self' 'unsafe-inline';",
+              'frame-src https://www.googletagmanager.com;',
+              "object-src 'none';",
+              "base-uri 'self';",
+              "frame-ancestors 'none';",
+            ].join(' '),
           },
           {
             key: 'Permissions-Policy',
