@@ -57,7 +57,7 @@ export const metadata: Metadata = {
   },
   alternates: {
     types: {
-      'application/json+oembed': '/oembed.json',
+      'application/json+oembed': `${pageDomain}/oembed.json`,
     },
   },
 };
