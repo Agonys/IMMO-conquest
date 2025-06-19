@@ -186,7 +186,7 @@ export const transformAndUpdateDatabase = async ({
       })
       .returning();
 
-    if (insertedSeason[0].id) {
+    if (insertedSeason[0]?.id) {
       seasonId = insertedSeason[0].id;
     } else {
       const [ongoingSeason] = await tx
