@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
+import Head from 'next/head';
 import { GoogleAnalytics } from '@next/third-parties/google';
 import './globals.css';
 
@@ -64,6 +65,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <Head>
+        <meta name="discord:embed_type" content="link" />
+      </Head>
       <body className={`${inter.variable} antialiased`}>{children}</body>
 
       {process.env.GA_ID && <GoogleAnalytics gaId={process.env.GA_ID} />}
