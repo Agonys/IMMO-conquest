@@ -45,13 +45,13 @@ export const metadata: Metadata = {
     description:
       'IdleMMO guilds conquest leaderboard: see which guilds are fighting for dominance against other players in epic battles!',
     url: pageDomain,
-    siteName: 'IdleMMO Conquest',
-    locale: 'en_US',
+    type: 'profile',
     images: [
       {
-        url: `${pageDomain}/logo_white.png`,
-        width: 80,
-        height: 80,
+        url: `${pageDomain}/og-image.png`,
+        width: 1200,
+        height: 630,
+        type: 'link',
       },
     ],
   },
