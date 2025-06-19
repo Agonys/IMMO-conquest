@@ -43,22 +43,17 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'IdleMMO Conquest',
     description:
-      'IdleMMO guilds conquest leaderboard: see which guilds are fighting for dominance against other players in epic battles!',
+      'IdleMMO guilds conquest leaderboard: Stay updated on guild standings, player performance, and who’s ruling each terrain!',
     url: pageDomain,
-    type: 'profile',
+    siteName: 'IdleMMO Conquest',
+    type: 'website',
     images: [
       {
         url: `${pageDomain}/og-image.png`,
         width: 1200,
         height: 630,
-        type: 'link',
       },
     ],
-  },
-  alternates: {
-    types: {
-      'application/json+oembed': `${pageDomain}/oembed.json`,
-    },
   },
 };
 
