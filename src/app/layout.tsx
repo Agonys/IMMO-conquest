@@ -1,6 +1,5 @@
 import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
-import Head from 'next/head';
 import { GoogleAnalytics } from '@next/third-parties/google';
 import './globals.css';
 
@@ -56,8 +55,10 @@ export const metadata: Metadata = {
       },
     ],
   },
-  other: {
-    'disord:embed_type': 'link',
+  alternates: {
+    types: {
+      'application/json+oembed': '/oembed.json',
+    },
   },
 };
 
