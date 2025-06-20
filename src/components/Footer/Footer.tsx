@@ -11,7 +11,7 @@ export const Footer = () => {
         className="flex items-center gap-2 text-sm"
       >
         <DiscordIcon />
-        Agonys
+        [-Agonys-]
       </Link>
       <span className="text-foreground-darker text-xs">
         This project is not affiliated with IdleMMO or Galahad Creative Ltd. All graphics used in this project are
