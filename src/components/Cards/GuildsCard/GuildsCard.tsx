@@ -89,7 +89,7 @@ export const GuildsCard = ({ id }: GuildsCardProps) => {
             href={`https://web.idle-mmo.com/guilds?guild_id=${row.original.guildId}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-2"
+            className="flex w-full items-center gap-2"
           >
             {
               <Image
@@ -101,7 +101,14 @@ export const GuildsCard = ({ id }: GuildsCardProps) => {
                 className={cn('aspect-square w-8 rounded', 'sm:w-10', 'md:w-12', 'lg:w-14')}
               />
             }
-            <span>{row.original.guildName}</span>
+            <span
+              className={cn(
+                'inline-block max-w-full overflow-hidden text-xs text-ellipsis',
+                screenSizes.xs && '[font-size:inherit]',
+              )}
+            >
+              {row.original.guildName}
+            </span>
           </Link>
         );
       },
@@ -241,7 +248,7 @@ export const GuildsCard = ({ id }: GuildsCardProps) => {
     <div id={id} className="bg-card flex flex-col gap-4 rounded-md p-4">
       {/* Filters */}
 
-      <div className="flex w-full items-center justify-between gap-10">
+      <div className="flex w-full items-center justify-between gap-2">
         <div className="flex flex-col gap-1">
           <h3 className="text-2xl font-medium capitalize">Top guilds list</h3>
           <span className="text-foreground-darker text-sm">Track which guild rules the region</span>
@@ -259,7 +266,7 @@ export const GuildsCard = ({ id }: GuildsCardProps) => {
       <div
         className={cn(
           'grid',
-          'grid-cols-[--spacing(10)_1fr_100px_90px]',
+          'grid-cols-[--spacing(10)_minmax(100px,1fr)_100px_90px]',
           'xs:grid-cols-[--spacing(11)_2fr_1fr_1fr_1fr]',
           'md:grid-cols-[--spacing(12)_2fr_1fr_1fr_1fr_1fr]',
           'lg:grid-cols-[--spacing(13)_2fr_1fr_1fr_1fr_1fr_2fr]',

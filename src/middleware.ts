@@ -28,15 +28,23 @@ export function middleware(req: NextRequest) {
   const axiomLogger = new AxiomLogger({ source: 'middleware' });
   const origin = req.headers.get('origin');
   const referer = req.headers.get('referer');
-  const { method } = req;
+  const forwardedFor = req.headers.get('x-forwarded-for');
+  const { method, nextUrl, headers } = req;
 
   axiomLogger.middleware(req);
 
-  const forwardedFor = req.headers.get('x-forwarded-for');
   if (!forwardedFor) return new Response('No ip found', { status: 403 });
   const ip = forwardedFor.split(',')[0];
-
   if (!ip) return new Response('No ip found', { status: 403 });
+
+  axiomLogger.info('Request received', {
+    ip,
+    method,
+    url: nextUrl.pathname,
+    origin,
+    referer,
+    headers: Object.fromEntries(headers.entries()), // log all headers
+  });
 
   if (isBlockedReferer(referer)) {
     logger.warn({ ip, referer, req }, 'Blocked: Referer Forbidden');

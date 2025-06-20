@@ -148,7 +148,7 @@ export const LocationSelect = ({ locations, onSelect }: LocationSelectProps) => 
                       if (isSubmitKey(e)) handleSelectOption(location.key);
                     }}
                     role="button"
-                    className="group relative flex h-32 min-w-[200px] cursor-pointer items-end overflow-hidden rounded-lg transition-all focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-inset"
+                    className="group relative flex h-32 min-w-[100px] cursor-pointer items-end overflow-hidden rounded-lg transition-all focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-inset"
                   >
                     <div className="absolute top-0 left-0 z-20 h-full w-full bg-black/50 transition-colors group-hover:bg-black/30" />
                     <Image
@@ -185,7 +185,7 @@ export const LocationSelect = ({ locations, onSelect }: LocationSelectProps) => 
         className="border-card-border flex w-max cursor-pointer flex-col overflow-hidden rounded-md border text-sm"
       >
         {/* Trigger */}
-        <div className="bg-card-header mb-px flex w-full min-w-max items-center justify-between gap-8 border-b px-3 py-2">
+        <div className="bg-card-header mb-px flex w-full min-w-max flex-wrap items-center justify-between gap-2 border-b px-3 py-2 md:gap-4 xl:gap-8">
           <span>Select Region</span>
           {screenSizes.md ? <MousePointerClick size={20} /> : <Pointer size={16} />}
         </div>
