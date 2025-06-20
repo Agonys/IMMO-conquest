@@ -1,3 +1,4 @@
+import { Logger as AxiomLogger } from 'next-axiom';
 import { NextRequest, NextResponse } from 'next/server';
 import { rateLimit } from '@/middlewares';
 import { logger } from './utils/logger';
@@ -24,9 +25,12 @@ function isBlockedReferer(referer: string | null) {
 
 export function middleware(req: NextRequest) {
   const response = NextResponse.next();
+  const axiomLogger = new AxiomLogger({ source: 'middleware' });
   const origin = req.headers.get('origin');
   const referer = req.headers.get('referer');
   const { method } = req;
+
+  axiomLogger.middleware(req);
 
   const forwardedFor = req.headers.get('x-forwarded-for');
   if (!forwardedFor) return new Response('No ip found', { status: 403 });

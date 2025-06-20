@@ -1,4 +1,5 @@
 import type { NextConfig } from 'next';
+import { withAxiom } from 'next-axiom';
 
 const nextConfig: NextConfig = {
   devIndicators: false,
@@ -53,4 +54,4 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+export default withAxiom(nextConfig);
