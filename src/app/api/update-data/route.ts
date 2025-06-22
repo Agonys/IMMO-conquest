@@ -17,6 +17,7 @@ const putDataIntoDB = async (req: NextRequest): Promise<Response> => {
     return NextResponse.json({ error: 'Unauthorized - Get out of here' }, { status: 401 });
   }
 
+  let successData: Record<string, number> = {};
   try {
     const body = await req.json();
 
@@ -29,8 +30,10 @@ const putDataIntoDB = async (req: NextRequest): Promise<Response> => {
       throw new Error('Inital import without initial data');
     }
 
-    const time = await transformAndUpdateDatabase({ data, isInitialImport, initialData });
+    const { time, insertedAndUpadedData } = await transformAndUpdateDatabase({ data, isInitialImport, initialData });
     logger.info(`database update took ${time}s, clearing cache`);
+    logger.debug(insertedAndUpadedData);
+    successData = insertedAndUpadedData;
     cache.clear();
   } catch (error: unknown) {
     if (error instanceof ZodError) {
@@ -42,9 +45,11 @@ const putDataIntoDB = async (req: NextRequest): Promise<Response> => {
       logger.error(error);
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
+
+    logger.error({ error });
   }
 
-  return NextResponse.json({ success: true }, { status: 200 });
+  return NextResponse.json({ success: true, successData }, { status: 200 });
 };
 
 export const POST = withErrorHandler(putDataIntoDB);

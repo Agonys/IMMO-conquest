@@ -57,12 +57,20 @@ interface TransformAndUpdateDatabaseProps {
     season: SeasonInsertType;
   };
 }
+
+interface TransformAndUpdateDatabaseResult {
+  time: number;
+  insertedAndUpadedData: Record<string, number>;
+}
+
 export const transformAndUpdateDatabase = async ({
   data,
   initialData,
   isInitialImport,
-}: TransformAndUpdateDatabaseProps) => {
+}: TransformAndUpdateDatabaseProps): Promise<TransformAndUpdateDatabaseResult> => {
   const timeNow = performance.now();
+
+  const insertedAndUpadedData: Record<string, number> = {};
 
   for await (const zone of data) {
     try {
@@ -152,16 +160,17 @@ export const transformAndUpdateDatabase = async ({
       }
     }
 
-    await tx
+    const insertedLocations = await tx
       .insert(locations)
       .values([...locationsMap.values()])
       .onConflictDoUpdate({
         target: locations.id,
         set: buildConflictUpdateColumns(locations, ['key', 'name', 'backgroundUrl', 'updatedAt']),
-      });
+      })
+      .returning();
 
     // Inserting guilds
-    await tx
+    const insertedGuilds = await tx
       .insert(guilds)
       .values([...guildsMap.values()])
       .onConflictDoUpdate({
@@ -281,11 +290,14 @@ export const transformAndUpdateDatabase = async ({
     });
 
     // inserting contributors and guilds into history
-    await tx.insert(playersContributionHistory).values(playersContributionsList);
-    await tx.insert(guildSummaryHistory).values(guildSummaryList);
+    const playersContributionHistoryInsertedRows = await tx
+      .insert(playersContributionHistory)
+      .values(playersContributionsList)
+      .returning();
+    const guildSummaryHistoryInsertedRows = await tx.insert(guildSummaryHistory).values(guildSummaryList).returning();
 
     // Update latest table to hold current data
-    await tx
+    const playersContributionsLatestInsertedRows = await tx
       .insert(playersContributionsLatest)
       .values(playersContributionsList)
       .onConflictDoUpdate({
@@ -296,16 +308,26 @@ export const transformAndUpdateDatabase = async ({
           playersContributionsLatest.playerId,
         ],
         set: buildConflictUpdateColumns(playersContributionsLatest, ['date', 'experience', 'kills', 'updatedAt']),
-      });
+      })
+      .returning();
 
-    await tx
+    const guildSummaryLatestInsertedRows = await tx
       .insert(guildSummaryLatest)
       .values(guildSummaryList)
       .onConflictDoUpdate({
         target: [guildSummaryLatest.seasonId, guildSummaryLatest.locationId, guildSummaryLatest.guildId],
         set: buildConflictUpdateColumns(guildSummaryLatest, ['date', 'experience', 'kills', 'updatedAt']),
-      });
+      })
+      .returning();
+
+    insertedAndUpadedData['insertedLocations'] = insertedLocations.length;
+    insertedAndUpadedData['insertedGuilds'] = insertedGuilds.length;
+    insertedAndUpadedData['insertedPlayers'] = insertedPlayers.length;
+    insertedAndUpadedData['playersContributionHistoryInsertedRows'] = playersContributionHistoryInsertedRows.length;
+    insertedAndUpadedData['guildSummaryHistoryInsertedRows'] = guildSummaryHistoryInsertedRows.length;
+    insertedAndUpadedData['playersContributionsLatestInsertedRows'] = playersContributionsLatestInsertedRows.length;
+    insertedAndUpadedData['guildSummaryLatestInsertedRows'] = guildSummaryLatestInsertedRows.length;
   });
 
-  return +((performance.now() - timeNow) / 1000).toFixed(2);
+  return { time: +((performance.now() - timeNow) / 1000).toFixed(2), insertedAndUpadedData };
 };
