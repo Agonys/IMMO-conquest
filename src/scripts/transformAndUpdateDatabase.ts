@@ -132,7 +132,7 @@ export const transformAndUpdateDatabase = async ({
       }
     } catch (error) {
       console.error(`Failed to process zone: ${zone.location.name}`, error);
-      return;
+      throw error;
     }
   }
 
