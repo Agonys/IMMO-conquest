@@ -130,4 +130,139 @@ export const DatabaseDataUpdateSchema = z.object({
     .optional(),
 });
 
+export const DataHarFileSchema = z.object({
+  log: z.object({
+    creator: z.object({
+      name: z.string(),
+      version: z.string(),
+    }),
+    entries: z.array(
+      z.object({
+        _connectionId: z.string(),
+        _initiator: z.object({
+          type: z.string(),
+          stack: z.object({
+            callFrames: z.array(
+              z.object({
+                functionName: z.string(),
+                scriptId: z.string(),
+                url: z.string(),
+                lineNumber: z.number(),
+                columnNumber: z.number(),
+              }),
+            ),
+          }),
+        }),
+        _priority: z.string(),
+        _resourceType: z.string(),
+        cache: z.record(z.any()),
+        connection: z.string(),
+        request: z.object({
+          method: z.string(),
+          url: z.string(),
+          httpVersion: z.string(),
+          headers: z.array(
+            z.object({
+              name: z.string(),
+              value: z.string(),
+            }),
+          ),
+          queryString: z.array(
+            z.object({
+              name: z.string(),
+              value: z.string(),
+            }),
+          ),
+          cookies: z.array(
+            z.object({
+              name: z.string(),
+              value: z.string(),
+              path: z.string(),
+              domain: z.string(),
+              expires: z.string(),
+              httpOnly: z.boolean(),
+              secure: z.boolean(),
+              sameSite: z.string(),
+              partitionKey: z
+                .object({
+                  topLevelSite: z.string(),
+                  hasCrossSiteAncestor: z.boolean(),
+                })
+                .optional(),
+            }),
+          ),
+          headersSize: z.number(),
+          bodySize: z.number(),
+          postData: z
+            .object({
+              mimeType: z.string(),
+              text: z.string(),
+            })
+            .optional(),
+        }),
+        response: z.object({
+          status: z.number(),
+          statusText: z.string(),
+          httpVersion: z.string(),
+          headers: z.array(
+            z.object({
+              name: z.string(),
+              value: z.string(),
+            }),
+          ),
+          cookies: z.array(
+            z.object({
+              name: z.string(),
+              value: z.string(),
+              path: z.string(),
+              domain: z.string(),
+              expires: z.string(),
+              httpOnly: z.boolean(),
+              secure: z.boolean(),
+              sameSite: z.string(),
+              partitionKey: z
+                .object({
+                  topLevelSite: z.string(),
+                  hasCrossSiteAncestor: z.boolean(),
+                })
+                .optional(),
+            }),
+          ),
+          content: z.object({
+            size: z.number(),
+            mimeType: z.string(),
+            text: z.string(),
+          }),
+          redirectURL: z.string(),
+          headersSize: z.number(),
+          bodySize: z.number(),
+          _transferSize: z.number(),
+          _error: z.any().nullable(),
+          _fetchedViaServiceWorker: z.boolean(),
+        }),
+        serverIPAddress: z.string(),
+        startedDateTime: z.string(),
+        time: z.number(),
+        timings: z.object({
+          blocked: z.number(),
+          dns: z.number(),
+          ssl: z.number(),
+          connect: z.number(),
+          send: z.number(),
+          wait: z.number(),
+          receive: z.number(),
+          _blocked_queueing: z.number(),
+          _workerStart: z.number(),
+          _workerReady: z.number(),
+          _workerFetchStart: z.number(),
+          _workerRespondWithSettled: z.number(),
+        }),
+      }),
+    ),
+    pages: z.array(z.object({})),
+    version: z.string(),
+  }),
+});
+
+export type DataHarFileType = z.infer<typeof DataHarFileSchema>;
 export type DataGatherFromSite = z.infer<typeof DataGatherFromSiteSchema>;

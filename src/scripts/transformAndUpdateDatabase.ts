@@ -11,6 +11,8 @@ import {
   seasons,
 } from '@/db/schema';
 import {
+  DataHarFileSchema,
+  DataHarFileType,
   GuildInsertType,
   GuildSummaryHistoryInsertType,
   LocationInsertType,
@@ -50,8 +52,8 @@ const guildSummaryList: GuildSummaryHistoryInsertType[] = [];
 //   ...metadataFields,
 // });
 
-interface TransformAndUpdateDatabaseProps {
-  data: DataGatherFromSite;
+export interface TransformAndUpdateDatabaseProps {
+  data: DataGatherFromSite | DataHarFileType;
   isInitialImport?: boolean;
   initialData?: {
     season: SeasonInsertType;
@@ -69,10 +71,16 @@ export const transformAndUpdateDatabase = async ({
   isInitialImport,
 }: TransformAndUpdateDatabaseProps): Promise<TransformAndUpdateDatabaseResult> => {
   const timeNow = performance.now();
+  let transformedData = data;
 
   const insertedAndUpadedData: Record<string, number> = {};
 
-  for await (const zone of data) {
+  if (!Array.isArray(transformedData)) {
+    const parsed = DataHarFileSchema.parse(data);
+    transformedData = parsed.log.entries.map((e) => JSON.parse(e.response.content.text)) as DataGatherFromSite;
+  }
+
+  for await (const zone of transformedData) {
     try {
       const { location, guilds } = zone;
 
@@ -241,7 +249,7 @@ export const transformAndUpdateDatabase = async ({
       }
     }
 
-    data.forEach((zone) => {
+    transformedData.forEach((zone) => {
       const { guilds, location } = zone;
       const locationId = location.id;
 
