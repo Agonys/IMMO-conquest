@@ -47,7 +47,7 @@ const putDataIntoDB = async (req: NextRequest): Promise<Response> => {
 
     const { time, insertedAndUpadedData } = await transformAndUpdateDatabase({ data, isInitialImport, initialData });
     logger.info(`database update took ${time}s, clearing cache`);
-    logger.debug(insertedAndUpadedData);
+    logger.info(insertedAndUpadedData);
     successData = insertedAndUpadedData;
     cache.clear();
   } catch (error: unknown) {

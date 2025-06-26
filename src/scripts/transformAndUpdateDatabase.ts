@@ -25,7 +25,7 @@ import {
   seasonInsertSchema,
 } from '@/db/types';
 import { DataGatherFromSite } from '@/db/types';
-import { getISOTime, numericStringToNumber } from '@/utils';
+import { getISOTime, logger, numericStringToNumber } from '@/utils';
 import { downloadImageIfNeeded } from '@/utils/downloadImageIfNeeded';
 import { buildConflictUpdateColumns } from '../utils/buildConflictUpdateColumns';
 import { decideSeason } from './pickSeason';
@@ -335,6 +335,7 @@ export const transformAndUpdateDatabase = async ({
     insertedAndUpadedData['guildSummaryHistoryInsertedRows'] = guildSummaryHistoryInsertedRows.length;
     insertedAndUpadedData['playersContributionsLatestInsertedRows'] = playersContributionsLatestInsertedRows.length;
     insertedAndUpadedData['guildSummaryLatestInsertedRows'] = guildSummaryLatestInsertedRows.length;
+    logger.info(metadataFields, 'transformAndUpdateDatabase metadataFields');
   });
 
   return { time: +((performance.now() - timeNow) / 1000).toFixed(2), insertedAndUpadedData };

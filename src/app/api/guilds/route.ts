@@ -123,6 +123,7 @@ const getGuilds = async (): Promise<Response> => {
       }))
       .sort((a, b) => b.totalExp - a.totalExp);
     lastUpdated = dbResult[0].updatedAt;
+    logger.info(`last update - ${lastUpdated}`);
   } catch (err) {
     logger.error({ err }, 'Get guilds database query failed');
     return NextResponse.json({ error: 'Database guilds query error' }, { status: 500 });

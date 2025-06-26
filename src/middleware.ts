@@ -23,7 +23,7 @@ function isBlockedReferer(referer: string | null) {
   }
 }
 
-export function middleware(req: NextRequest) {
+export async function middleware(req: NextRequest) {
   const response = NextResponse.next();
   const axiomLogger = new AxiomLogger({ source: 'middleware' });
   const origin = req.headers.get('origin');
@@ -37,14 +37,16 @@ export function middleware(req: NextRequest) {
   const ip = forwardedFor.split(',')[0];
   if (!ip) return new Response('No ip found', { status: 403 });
 
-  axiomLogger.info('Request received', {
+  const senderInfo = {
     ip,
     method,
     url: nextUrl.pathname,
     origin,
     referer,
     headers: Object.fromEntries(headers.entries()), // log all headers
-  });
+  };
+
+  axiomLogger.info('Request received', senderInfo);
 
   if (isBlockedReferer(referer)) {
     logger.warn({ ip, referer, req }, 'Blocked: Referer Forbidden');
@@ -78,6 +80,13 @@ export function middleware(req: NextRequest) {
 
   response.headers.set('X-Ratelimit-Limit', `${rateLimitResponse.limit}`);
   response.headers.set('X-Ratelimit-Remaining', `${rateLimitResponse.remaining}`);
+
+  if (method === 'POST') {
+    try {
+      const body = await req.json();
+      axiomLogger.info('Post request', { ...senderInfo, body });
+    } catch {}
+  }
 
   return response;
 }
