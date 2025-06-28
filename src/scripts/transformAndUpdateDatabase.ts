@@ -70,6 +70,8 @@ export const transformAndUpdateDatabase = async ({
   initialData,
   isInitialImport,
 }: TransformAndUpdateDatabaseProps): Promise<TransformAndUpdateDatabaseResult> => {
+  logger.info(metadataFields, 'transformAndUpdateDatabase metadataFields');
+
   const timeNow = performance.now();
   let transformedData = data;
 
@@ -335,7 +337,6 @@ export const transformAndUpdateDatabase = async ({
     insertedAndUpadedData['guildSummaryHistoryInsertedRows'] = guildSummaryHistoryInsertedRows.length;
     insertedAndUpadedData['playersContributionsLatestInsertedRows'] = playersContributionsLatestInsertedRows.length;
     insertedAndUpadedData['guildSummaryLatestInsertedRows'] = guildSummaryLatestInsertedRows.length;
-    logger.info(metadataFields, 'transformAndUpdateDatabase metadataFields');
   });
 
   return { time: +((performance.now() - timeNow) / 1000).toFixed(2), insertedAndUpadedData };
