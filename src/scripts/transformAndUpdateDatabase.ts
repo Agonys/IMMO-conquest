@@ -30,27 +30,11 @@ import { downloadImageIfNeeded } from '@/utils/downloadImageIfNeeded';
 import { buildConflictUpdateColumns } from '../utils/buildConflictUpdateColumns';
 import { decideSeason } from './pickSeason';
 
-const now = new Date().toISOString();
-// date of records, could be different than now and creation time
-const date = getISOTime({ date: now });
-const metadataFields = {
-  createdAt: now,
-  updatedAt: now,
-  deletedAt: null,
-};
 const guildsMap = new Map<number, GuildInsertType>();
 const playersMap = new Map<string, PlayerInsertType>();
 const locationsMap = new Map<number, LocationInsertType>();
 const playersContributionsList: PlayersContributionHistoryInsertType[] = [];
 const guildSummaryList: GuildSummaryHistoryInsertType[] = [];
-
-// const seasonData = seasonInsertSchema.parse({
-//   id: 4,
-//   seasonNumber: 4,
-//   startDate: '2025-05-12T12:00:00.000Z',
-//   endDate: '2025-07-11T12:00:00.000Z',
-//   ...metadataFields,
-// });
 
 export interface TransformAndUpdateDatabaseProps {
   data: DataGatherFromSite | DataHarFileType;
@@ -70,6 +54,15 @@ export const transformAndUpdateDatabase = async ({
   initialData,
   isInitialImport,
 }: TransformAndUpdateDatabaseProps): Promise<TransformAndUpdateDatabaseResult> => {
+  const now = new Date().toISOString();
+  // date of records, could be different than now and creation time
+  const date = getISOTime({ date: now });
+  const metadataFields = {
+    createdAt: now,
+    updatedAt: now,
+    deletedAt: null,
+  };
+
   logger.info(metadataFields, 'transformAndUpdateDatabase metadataFields');
 
   const timeNow = performance.now();
