@@ -6,6 +6,7 @@ const nextConfig: NextConfig = {
   serverExternalPackages: ['pino', 'pino-pretty'],
   images: {
     remotePatterns: [new URL('https://idlemmo-conquest.com/**')],
+    unoptimized: true,
   },
   allowedDevOrigins: ['192.168.0.87'],
   async headers() {

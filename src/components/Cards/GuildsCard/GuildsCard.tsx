@@ -248,10 +248,10 @@ export const GuildsCard = ({ id }: GuildsCardProps) => {
     <div id={id} className="bg-card flex flex-col gap-4 rounded-md p-4">
       {/* Filters */}
 
-      <div className="flex w-full items-center justify-between gap-2">
+      <div className="flex w-full items-start justify-between gap-2">
         <div className="flex flex-col gap-1">
           <h3 className="text-2xl font-medium capitalize">Top guilds list</h3>
-          <span className="text-foreground-darker text-sm">Track which guild rules the region</span>
+          {/* <span className="text-foreground-darker text-sm">Track which guild rules the region</span> */}
           {guildsList?.updatedAt && (
             <span className="text-foreground-darker text-xs">
               Last update: {new Date(guildsList.updatedAt).toLocaleString()}
@@ -274,34 +274,26 @@ export const GuildsCard = ({ id }: GuildsCardProps) => {
         )}
       >
         {table.getHeaderGroups().map((headerGroup) => {
-          return (
-            <div className="col-span-full grid w-full grid-cols-[inherit]" key={headerGroup.id}>
-              {headerGroup.headers.map((header) => (
-                <div key={header.id} className={cn('p-2 text-base font-bold text-gray-300 md:text-lg')}>
-                  {flexRender(header.column.columnDef.header, header.getContext())}
-                </div>
-              ))}
+          return headerGroup.headers.map((header) => (
+            <div key={header.id} className={cn('p-2 text-base font-bold text-gray-300 md:text-lg')}>
+              {flexRender(header.column.columnDef.header, header.getContext())}
             </div>
-          );
+          ));
         })}
 
         {table.getRowModel().rows.map((row, i) => {
-          return (
-            <div className="col-span-full grid w-full grid-cols-[inherit]" key={row.id}>
-              {row.getVisibleCells().map((cell) => (
-                <div
-                  key={cell.id}
-                  className={cn(
-                    'flex items-center border-b p-2 text-sm font-bold md:text-base',
-                    cell.column.id === 'position' && 'justify-center',
-                    i % 2 === 1 && 'bg-black/10',
-                  )}
-                >
-                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                </div>
-              ))}
+          return row.getVisibleCells().map((cell) => (
+            <div
+              key={cell.id}
+              className={cn(
+                'flex items-center border-b p-2 text-sm font-bold md:text-base',
+                cell.column.id === 'position' && 'justify-center',
+                i % 2 === 1 && 'bg-black/10',
+              )}
+            >
+              {flexRender(cell.column.columnDef.cell, cell.getContext())}
             </div>
-          );
+          ));
         })}
       </div>
       <PaginationControls table={table} />
