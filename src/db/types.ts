@@ -95,23 +95,26 @@ export const DataGatherFromSiteSchema = z.array(
         ends_in: z.string(),
       }),
     ),
-    guilds: z.record(
-      z.string(),
-      z.object({
-        id: z.coerce.number().int(),
-        position: z.coerce.number().int(),
-        kills: z.string(),
-        experience: z.string(),
-        contributions: z.array(ContributionSchema),
-        guild: z.object({
-          name: z.string(),
-          url: z.string(),
-          tag: z.string().nullable(),
-          icon_url: z.string(),
-          background_url: z.string(),
+    guilds: z.union([
+      z.array(z.null()),
+      z.record(
+        z.string(),
+        z.object({
+          id: z.coerce.number().int(),
+          position: z.coerce.number().int(),
+          kills: z.string(),
+          experience: z.string(),
+          contributions: z.array(ContributionSchema),
+          guild: z.object({
+            name: z.string(),
+            url: z.string(),
+            tag: z.string().nullable(),
+            icon_url: z.string(),
+            background_url: z.string(),
+          }),
         }),
-      }),
-    ),
+      ),
+    ]),
   }),
 );
 

@@ -1,6 +1,6 @@
-import { useQuery } from 'react-query';
 import { LocationSelectType } from '@/db/types';
 import { apiClient } from '@/services';
+import { useQuery } from '@tanstack/react-query';
 
 const getLocations = async () => {
   const result = await apiClient.get<LocationSelectType[]>(`/locations`);

@@ -8,6 +8,7 @@
   --card: var(--color-gray-800);
   --card-border: oklch(0.373 0.034 259.733 / 0.5);
   --card-header: oklch(0.21 0.034 264.665 / 0.4);
+  --card-header-solid: oklch(0.21 0.034 264.665);
   --yellow-light: var(--color-yellow-400);
   --yellow-dark: var(--color-yellow-600);
   --gradient: linear-gradient(to right, var(--yellow-light), var(--yellow-dark));
@@ -38,6 +39,7 @@
   --color-background: var(--background);
   --color-card: var(--card);
   --color-card-header: var(--card-header);
+  --color-card-header-solid: var(--card-header-solid);
   --color-yellow-light: var(--yellow-light);
   --color-yellow-dark: var(--yellow-dark);
   --color-gradient: var(--gradient);
