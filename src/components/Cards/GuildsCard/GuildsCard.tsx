@@ -1,15 +1,17 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
-import { Trophy } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Crown, Filter, History, Shield, Swords, Trophy, X } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Badge } from '@/components/Badge';
-import { LocationSelect } from '@/components/LocationSelect';
+import { Button } from '@/components/Button';
+import { InputWithDropdown } from '@/components/InputWithDropdown';
+import { LabelContainer } from '@/components/LabelContainer';
 import { PaginationControls } from '@/components/PaginationControls';
-import { Separator } from '@/components/Separator';
 import { useGetGuilds, useMediaQuerySizes } from '@/hooks';
 import { useGetLocations } from '@/hooks/query';
+import { useGetSeasons } from '@/hooks/query/useGetSeasons';
 import { GuildEntry } from '@/types/guilds';
 import { cn, getPublicImagePath } from '@/utils';
 import {
@@ -21,6 +23,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from '@tanstack/react-table';
+import { GuildsStatisticCard } from './GuildsStatisticCard';
 import { SortingButton } from './SortingButton';
 
 interface GuildsCardProps {
@@ -36,23 +39,61 @@ const getColorByPosition = (position: number) =>
 
 export const GuildsCard = ({ id }: GuildsCardProps) => {
   const { screenSizes } = useMediaQuerySizes();
+  const [areFiltersOpen, setAreFiltersOpen] = useState(false);
+
   const [currentLocationKey, setCurrentLocationKey] = useState<string | null>(null);
+  const [currentSeasonNumber, setCurrentSeasonNumber] = useState<number | null>(null);
+
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({
     bestPlayer: screenSizes.xl,
     participantsCount: screenSizes.sm,
     killToExpRatio: screenSizes.xl,
   });
 
-  const { data: locations, isLoading: locationsIsLoading } = useGetLocations();
-  const { data: guildsList, isLoading: guildsListIsLoading } = useGetGuilds();
+  const { data: locations, isPending: locationsIsPending } = useGetLocations();
+  const { data: seasons } = useGetSeasons();
+  const { data: guildsList, isPending: guildsListIsLoading } = useGetGuilds({ season: currentSeasonNumber });
 
-  const isContentLoaded = useMemo(
-    () => !locationsIsLoading && !guildsListIsLoading,
-    [locationsIsLoading, guildsListIsLoading],
+  const defaultSeasonNumber = useMemo(
+    () => seasons?.currentSeason?.seasonNumber ?? seasons?.list[0].seasonNumber ?? null,
+    [seasons],
   );
+
+  useEffect(() => {
+    if (!locationsIsPending && seasons?.list) {
+      setCurrentSeasonNumber(
+        seasons?.currentSeason ? seasons.currentSeason.seasonNumber : seasons?.list[0].seasonNumber,
+      );
+    }
+  }, [seasons, locationsIsPending]);
+
+  // TEMP solution, need actual form with dirty state.
+  const activeFiltersCount = useMemo(() => {
+    let counter = 0;
+    if (currentLocationKey !== null) counter++;
+    if (currentSeasonNumber !== null && currentSeasonNumber !== defaultSeasonNumber) counter++;
+
+    return counter;
+  }, [currentLocationKey, currentSeasonNumber]);
+
+  const clearFilters = useCallback(() => {
+    setCurrentLocationKey(null);
+    setCurrentSeasonNumber(defaultSeasonNumber);
+  }, [defaultSeasonNumber]);
+
+  const toggleFilters = () => {
+    setAreFiltersOpen((prev) => !prev);
+  };
 
   const onSelectLocation = (locationKey: string | null) => {
     setCurrentLocationKey(locationKey);
+  };
+
+  const onSelectSeason = (seasonNumber: number | null) => {
+    if (seasonNumber === null) {
+      return setCurrentSeasonNumber(defaultSeasonNumber);
+    }
+    setCurrentSeasonNumber(seasonNumber);
   };
 
   const columns: ColumnDef<GuildEntry>[] = [
@@ -236,67 +277,149 @@ export const GuildsCard = ({ id }: GuildsCardProps) => {
     },
   });
 
-  if (!isContentLoaded) {
-    return (
-      <div id={id} className="bg-card flex flex-col items-center justify-center gap-4 rounded-md p-40">
-        Loading...
-      </div>
-    );
-  }
+  const guildsStatisticCards = [
+    {
+      Icon: Shield,
+      data: guildsList?.data?.length || 0,
+      description: 'Guilds Participating',
+    },
+    {
+      Icon: Crown,
+      data: (guildsList?.data || []).reduce((acc, curr) => (acc += curr.totalExp), 0)?.toLocaleString() || 0,
+      description: 'Acquired Experience',
+    },
+    {
+      Icon: Swords,
+      data: (guildsList?.data || []).reduce((acc, curr) => (acc += curr.kills), 0)?.toLocaleString() || 0,
+      description: 'Killed Monsters',
+    },
+    {
+      Icon: History,
+      data: (guildsList?.updatedAt && new Date(guildsList.updatedAt).toLocaleString()) || 'Not updated yet',
+      description: 'Last Data Update',
+    },
+  ];
 
   return (
-    <div id={id} className="bg-card flex flex-col gap-4 rounded-md p-4">
-      {/* Filters */}
+    <>
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        {guildsStatisticCards.map((card) => (
+          <GuildsStatisticCard {...card} key={card.description} />
+        ))}
+      </div>
 
-      <div className="flex w-full items-start justify-between gap-2">
-        <div className="flex flex-col gap-1">
-          <h3 className="text-2xl font-medium capitalize">Top guilds list</h3>
-          {/* <span className="text-foreground-darker text-sm">Track which guild rules the region</span> */}
-          {guildsList?.updatedAt && (
-            <span className="text-foreground-darker text-xs">
-              Last update: {new Date(guildsList.updatedAt).toLocaleString()}
-            </span>
+      <div id={id} className="bg-card flex flex-col gap-4 rounded-md p-4">
+        {/* Filters */}
+
+        <div className="flex w-full items-start justify-between gap-2">
+          <Button variant="outline" onClick={toggleFilters} className="relative active:ring-0">
+            <Filter size={16} className={cn((areFiltersOpen || activeFiltersCount > 0) && 'text-yellow-light')} />
+            Filters
+            {activeFiltersCount > 0 && (
+              <div className="bg-yellow-light absolute -top-2.5 -right-2.5 flex h-5 w-5 items-center justify-center rounded-full text-black">
+                {activeFiltersCount}
+              </div>
+            )}
+          </Button>
+        </div>
+
+        {/* Filters Container */}
+        <div className={cn('h-0 overflow-hidden transition-all', areFiltersOpen && 'h-auto')}>
+          <div className="rounded-md border p-6">
+            <div className="flex flex-col items-start justify-between gap-2">
+              <div className="flex w-full items-center justify-between">
+                <div>
+                  <span className="text-lg">Filters</span>
+                  <p className="text-foreground-darker text-sm">
+                    Select properties that you want use for filtering the table.
+                  </p>
+                </div>
+                {activeFiltersCount > 0 && (
+                  <Button variant="filled" onClick={clearFilters}>
+                    <X size={16} /> Clear all filters ({activeFiltersCount})
+                  </Button>
+                )}
+              </div>
+
+              <div className="mt-6 grid w-full grid-cols-1 gap-6 md:grid-cols-3 lg:grid-cols-5">
+                <LabelContainer name="Region">
+                  {locations && (
+                    <InputWithDropdown
+                      list={locations.map((loc) => ({
+                        label: loc.name,
+                        value: loc.key,
+                        image: { src: loc.backgroundUrl, mode: 'background' },
+                      }))}
+                      placeholder="Select Region"
+                      onChange={(region) => onSelectLocation(region as string)}
+                      value={currentLocationKey}
+                      withoutSearch
+                    />
+                  )}
+                </LabelContainer>
+
+                <LabelContainer name="Season">
+                  {seasons && (
+                    <InputWithDropdown
+                      list={seasons.list.map((s) => {
+                        return {
+                          label: `Season ${s.seasonNumber}${s?.seasonNumber === seasons.currentSeason?.seasonNumber ? ' (current)' : ''}`,
+                          value: s.seasonNumber,
+                        };
+                      })}
+                      placeholder="Select Season"
+                      onChange={(season) => onSelectSeason(season as number)}
+                      value={currentSeasonNumber}
+                      withoutSearch
+                    />
+                  )}
+                </LabelContainer>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div
+          className={cn(
+            'grid rounded-md border',
+            'grid-cols-[--spacing(10)_minmax(100px,1fr)_100px_90px]',
+            'xs:grid-cols-[--spacing(11)_2fr_1fr_1fr_1fr]',
+            'md:grid-cols-[--spacing(12)_2fr_1fr_1fr_1fr_1fr]',
+            'lg:grid-cols-[--spacing(13)_2fr_1fr_1fr_1fr_1fr_2fr]',
+            '',
+          )}
+        >
+          {table.getHeaderGroups().map((headerGroup) => {
+            return headerGroup.headers.map((header) => (
+              <div key={header.id} className={cn('p-2 text-base font-bold text-gray-300 md:text-lg')}>
+                {flexRender(header.column.columnDef.header, header.getContext())}
+              </div>
+            ));
+          })}
+
+          {table.getRowModel().rows.map((row, i) => {
+            return row.getVisibleCells().map((cell) => (
+              <div
+                key={cell.id}
+                className={cn(
+                  'flex items-center border-b p-2 text-sm font-bold md:text-base',
+                  cell.column.id === 'position' && 'justify-center',
+                  i % 2 === 1 && 'bg-black/10',
+                )}
+              >
+                {flexRender(cell.column.columnDef.cell, cell.getContext())}
+              </div>
+            ));
+          })}
+
+          {table.getRowModel().rows.length === 0 && (
+            <div className="col-span-full flex justify-center p-20">
+              {guildsListIsLoading ? 'Loading...' : 'No entries found matching your criteria.'}
+            </div>
           )}
         </div>
-        <LocationSelect locations={locations} onSelect={onSelectLocation} />
+        <PaginationControls table={table} />
       </div>
-
-      <Separator />
-
-      <div
-        className={cn(
-          'grid',
-          'grid-cols-[--spacing(10)_minmax(100px,1fr)_100px_90px]',
-          'xs:grid-cols-[--spacing(11)_2fr_1fr_1fr_1fr]',
-          'md:grid-cols-[--spacing(12)_2fr_1fr_1fr_1fr_1fr]',
-          'lg:grid-cols-[--spacing(13)_2fr_1fr_1fr_1fr_1fr_2fr]',
-          '',
-        )}
-      >
-        {table.getHeaderGroups().map((headerGroup) => {
-          return headerGroup.headers.map((header) => (
-            <div key={header.id} className={cn('p-2 text-base font-bold text-gray-300 md:text-lg')}>
-              {flexRender(header.column.columnDef.header, header.getContext())}
-            </div>
-          ));
-        })}
-
-        {table.getRowModel().rows.map((row, i) => {
-          return row.getVisibleCells().map((cell) => (
-            <div
-              key={cell.id}
-              className={cn(
-                'flex items-center border-b p-2 text-sm font-bold md:text-base',
-                cell.column.id === 'position' && 'justify-center',
-                i % 2 === 1 && 'bg-black/10',
-              )}
-            >
-              {flexRender(cell.column.columnDef.cell, cell.getContext())}
-            </div>
-          ));
-        })}
-      </div>
-      <PaginationControls table={table} />
-    </div>
+    </>
   );
 };

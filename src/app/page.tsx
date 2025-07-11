@@ -1,6 +1,5 @@
 'use client';
 
-import { QueryCache, QueryClient, QueryClientProvider } from 'react-query';
 import { GuildsCard, PlayersCard, SummaryCard } from '@/components/Cards';
 import { ClientOnly } from '@/components/ClientOnly';
 import { Container } from '@/components/Container';
@@ -8,6 +7,7 @@ import { Footer } from '@/components/Footer';
 import { Navbar } from '@/components/Navbar';
 import { Search } from '@/components/Search';
 import { Tabs } from '@/components/Tabs';
+import { QueryCache, QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 const tabs = ['Guilds', 'Players', 'Summary'];
 const queryClient = new QueryClient({

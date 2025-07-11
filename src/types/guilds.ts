@@ -1,3 +1,5 @@
+import { SeasonSelectType } from '@/db/types';
+
 export interface GuildsSummaryLatestDBResult {
   updatedAt: string;
   locationKey: string;
@@ -20,6 +22,7 @@ export interface GuildsSummaryLatestDBResult {
 export interface GetGuildsResponse {
   updatedAt: string;
   data: GuildEntry[];
+  season: SeasonSelectType;
 }
 
 export interface GuildEntry {

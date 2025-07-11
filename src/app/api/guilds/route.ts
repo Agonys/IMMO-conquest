@@ -1,18 +1,58 @@
-import { gt, lt, sql } from 'drizzle-orm';
-import { NextResponse } from 'next/server';
+import { eq, sql } from 'drizzle-orm';
+import { NextRequest, NextResponse } from 'next/server';
 import { cacheKeys } from '@/constants';
 import { db } from '@/db';
 import { seasons } from '@/db/schema';
 import { SeasonSelectType } from '@/db/types';
 import { cache } from '@/services';
 import { GetGuildsResponse, GuildEntry, GuildsSummaryLatestDBResult } from '@/types/guilds';
-import { getISOTime } from '@/utils';
 import { logger } from '@/utils/logger';
 import { withErrorHandler } from '@/utils/withErrorHandler';
 
-const getGuilds = async (): Promise<Response> => {
+const getLastAvailableSeason = async () => {
+  const seasons = await db.query.seasons.findMany({
+    columns: { seasonNumber: true, endDate: true, startDate: true },
+  });
+  return seasons.sort((a, b) => new Date(b.endDate).getTime() - new Date(a.endDate).getTime())[0];
+};
+
+const getCurrentSeason = async (seasonFromParam: string | null): Promise<SeasonSelectType | null> => {
+  if (seasonFromParam) {
+    const season = await db.query.seasons.findFirst({
+      where: () => eq(seasons.seasonNumber, +seasonFromParam),
+      columns: {
+        seasonNumber: true,
+        startDate: true,
+        endDate: true,
+      },
+    });
+    if (season) return season;
+
+    logger.warn({ seasonFromParam }, "Provided season param that's not matching with any season");
+  } else {
+    const seasonsCache = cache.get<{ currentSeason: SeasonSelectType }>(cacheKeys.seasons);
+    if (seasonsCache?.currentSeason) return seasonsCache.currentSeason;
+    logger.warn('No current season active. Looking for past seasons...');
+  }
+
+  const lastAvailableSeason = await getLastAvailableSeason();
+  if (!lastAvailableSeason) {
+    logger.warn("Couldn't find any seasons in the past.");
+    return null;
+  }
+  return lastAvailableSeason;
+};
+
+const getGuilds = async (req: NextRequest): Promise<Response> => {
+  const { searchParams } = new URL(req.url);
+  const seasonFromParam = searchParams.get('season');
+
+  if (seasonFromParam && isNaN(parseInt(seasonFromParam, 10))) {
+    return NextResponse.json({ error: 'wrong season value' }, { status: 400 });
+  }
+
   const cacheKey = cacheKeys.guilds;
-  const cached = cache.get(cacheKey);
+  const cached = cache.get(`${cacheKey}-${seasonFromParam}`);
 
   if (cached !== undefined) {
     logger.info('Retrieving guilds from cache');
@@ -22,20 +62,12 @@ const getGuilds = async (): Promise<Response> => {
   logger.info('Querying DB for guilds');
   let data: GuildEntry[];
   let lastUpdated: string;
+  let season: SeasonSelectType;
   try {
-    const now = getISOTime();
-    const currentSeason = cache.has(cacheKeys.seasons)
-      ? cache.get<Pick<SeasonSelectType, 'seasonNumber'>>(cacheKeys.seasons)
-      : await db.query.seasons.findFirst({
-          where: () => lt(seasons.startDate, now) && gt(seasons.endDate, now),
-          columns: {
-            seasonNumber: true,
-          },
-        });
+    const currentSeason = await getCurrentSeason(seasonFromParam);
 
     if (!currentSeason) {
-      logger.warn({ currentSeason }, "Season couldn't be found. Maybe theres isn't one?");
-      return NextResponse.json({ error: 'No season has started yet' }, { status: 404 });
+      return NextResponse.json({ error: "Couldn't find any seasons in the past." }, { status: 404 });
     }
 
     const dbResult = (await db.values(sql`
@@ -123,7 +155,7 @@ const getGuilds = async (): Promise<Response> => {
       }))
       .sort((a, b) => b.totalExp - a.totalExp);
     lastUpdated = dbResult[0].updatedAt;
-    logger.info(`last update - ${lastUpdated}`);
+    season = currentSeason;
   } catch (err) {
     logger.error({ err }, 'Get guilds database query failed');
     return NextResponse.json({ error: 'Database guilds query error' }, { status: 500 });
@@ -132,9 +164,10 @@ const getGuilds = async (): Promise<Response> => {
   const result = {
     updatedAt: lastUpdated,
     data,
+    season,
   } satisfies GetGuildsResponse;
 
-  cache.set(cacheKey, result);
+  cache.set(`${cacheKey}-${seasonFromParam}`, result);
 
   return NextResponse.json(result);
 };

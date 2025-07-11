@@ -88,6 +88,8 @@ export const transformAndUpdateDatabase = async ({
       });
       locationsMap.set(location.id, parsedLocation);
 
+      if (Array.isArray(guilds)) continue;
+
       for await (const guildObject of Object.values(guilds)) {
         const { guild, contributions } = guildObject;
         const { name, url, tag, icon_url, background_url } = guild;
@@ -249,6 +251,8 @@ export const transformAndUpdateDatabase = async ({
       const locationId = location.id;
 
       Object.values(guilds).forEach((guildObject) => {
+        if (!guildObject) return;
+
         const { contributions, kills: guildKills, experience: guildExperience, guild } = guildObject;
         const { url, tag, name } = guild;
         const guildId = parseInt(new URLSearchParams(guild.url.split('?')[1]).get('guild_id') ?? '', 10);

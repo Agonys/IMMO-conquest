@@ -7,3 +7,4 @@ export { numericStringToNumber } from './numericStringToNumber';
 export { getISOTime } from './getISOTime';
 export { getPublicImagePath } from './getPublicImagePath';
 export { isSubmitKey } from './isSubmitKey';
+export { valueClamp } from './valueClamp';
