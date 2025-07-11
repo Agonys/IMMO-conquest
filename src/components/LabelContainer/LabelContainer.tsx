@@ -1,4 +1,4 @@
-import { type ReactNode, isValidElement } from 'react';
+import { type ReactNode } from 'react';
 import { cn } from '@/utils';
 
 interface LabelContainerProps {
@@ -8,18 +8,18 @@ interface LabelContainerProps {
 }
 
 export const LabelContainer = ({ name, className, children }: LabelContainerProps) => {
-  let hasDirectInputElement = false;
-  if (isValidElement(children)) {
-    hasDirectInputElement = children.type === 'input';
-  }
+  const hasDirectInputElement = false;
+  // if (isValidElement(children)) {
+  //   hasDirectInputElement = children.type === 'input';
+  // }
 
-  if (Array.isArray(children)) {
-    const isSomeValid = children.some(
-      (child) => (isValidElement(child) && child.type === 'input') || child.type.name === 'Controller',
-    );
+  // if (Array.isArray(children)) {
+  //   const isSomeValid = children.some(
+  //     (child) => (isValidElement(child) && child.type === 'input') || child.type.name === 'Controller',
+  //   );
 
-    hasDirectInputElement = isSomeValid;
-  }
+  //   hasDirectInputElement = isSomeValid;
+  // }
 
   // const hasDirectInputElement = isValidElement(children) ? children.type === 'input' : false;
   const Component = hasDirectInputElement ? 'label' : 'span';

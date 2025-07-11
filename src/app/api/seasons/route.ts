@@ -17,13 +17,13 @@ const getSeasons = async (): Promise<Response> => {
 
   logger.info('Querying DB for seasons list');
 
-  const now = getISOTime();
+  const now = new Date(getISOTime());
   const list = (
     await db.query.seasons.findMany({
       columns: { seasonNumber: true, startDate: true, endDate: true },
     })
-  ).sort((a, b) => b.seasonNumber - a.seasonNumber) satisfies SeasonSelectType[] | undefined;
-  const currentSeason = list.find((s) => s.startDate < now && s.endDate > now);
+  ).sort((a, b) => b.seasonNumber - a.seasonNumber) satisfies SeasonSelectType[];
+  const currentSeason = list.find((s) => new Date(s.startDate) < now && new Date(s.endDate) > now);
 
   const response = {
     list,

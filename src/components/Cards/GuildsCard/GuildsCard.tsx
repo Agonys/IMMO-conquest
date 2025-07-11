@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Crown, Filter, History, Shield, Swords, Trophy, X } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -8,9 +8,7 @@ import { Badge } from '@/components/Badge';
 import { Button } from '@/components/Button';
 import { InputWithDropdown } from '@/components/InputWithDropdown';
 import { LabelContainer } from '@/components/LabelContainer';
-import { LocationSelect } from '@/components/LocationSelect';
 import { PaginationControls } from '@/components/PaginationControls';
-import { Separator } from '@/components/Separator';
 import { useGetGuilds, useMediaQuerySizes } from '@/hooks';
 import { useGetLocations } from '@/hooks/query';
 import { useGetSeasons } from '@/hooks/query/useGetSeasons';
@@ -78,10 +76,10 @@ export const GuildsCard = ({ id }: GuildsCardProps) => {
     return counter;
   }, [currentLocationKey, currentSeasonNumber]);
 
-  const clearFilters = () => {
+  const clearFilters = useCallback(() => {
     setCurrentLocationKey(null);
     setCurrentSeasonNumber(defaultSeasonNumber);
-  };
+  }, [defaultSeasonNumber]);
 
   const toggleFilters = () => {
     setAreFiltersOpen((prev) => !prev);
@@ -92,7 +90,6 @@ export const GuildsCard = ({ id }: GuildsCardProps) => {
   };
 
   const onSelectSeason = (seasonNumber: number | null) => {
-    console.log({ seasonNumber });
     if (seasonNumber === null) {
       return setCurrentSeasonNumber(defaultSeasonNumber);
     }
@@ -283,17 +280,17 @@ export const GuildsCard = ({ id }: GuildsCardProps) => {
   const guildsStatisticCards = [
     {
       Icon: Shield,
-      data: guildsList?.data.length || 0,
+      data: guildsList?.data?.length || 0,
       description: 'Guilds Participating',
     },
     {
       Icon: Crown,
-      data: guildsList?.data.reduce((acc, curr) => (acc += curr.totalExp), 0)?.toLocaleString() || 0,
+      data: (guildsList?.data || []).reduce((acc, curr) => (acc += curr.totalExp), 0)?.toLocaleString() || 0,
       description: 'Acquired Experience',
     },
     {
       Icon: Swords,
-      data: guildsList?.data.reduce((acc, curr) => (acc += curr.kills), 0)?.toLocaleString() || 0,
+      data: (guildsList?.data || []).reduce((acc, curr) => (acc += curr.kills), 0)?.toLocaleString() || 0,
       description: 'Killed Monsters',
     },
     {

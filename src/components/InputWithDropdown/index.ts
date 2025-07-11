@@ -1,1 +1,1 @@
-export { InputWithDropdown } from './InputWIthDropdown';
+export { InputWithDropdown } from './InputWithDropdown';

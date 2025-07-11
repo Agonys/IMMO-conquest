@@ -256,57 +256,61 @@ export const InputWithDropdown = ({
           className="flex max-h-[300px] scroll-py-1 flex-col gap-1 overflow-x-hidden overflow-y-auto p-1"
           role="combobox"
           id="dropdown-listbox"
+          aria-expanded={true}
+          aria-controls="dropdown-options"
         >
           {filtered.length === 0 && <div className="text-muted-foreground px-3 py-2 select-none">No option found.</div>}
-          {filtered.map((item, i) => (
-            <div
-              key={item.value}
-              ref={(el) => {
-                itemRefs.current[i] = el;
-              }}
-              role="option"
-              title={item.label}
-              aria-selected={value === item.value}
-              id={`option-${item.value}`}
-              aria-posinset={i + 1}
-              aria-setsize={filtered.length}
-              onMouseDown={() => handleSelect(item.value)}
-              onMouseEnter={() => setHighlighted(i)}
-              className={cn(
-                `hover:bg-accent relative flex h-fit shrink-0 cursor-pointer items-center justify-between gap-2 overflow-hidden rounded-md px-3 py-2 capitalize`,
-                highlighted === i && 'bg-accent',
-              )}
-            >
-              {item.image?.src && item.image.mode === 'background' && (
-                <Image
-                  width={350}
-                  height={200}
-                  src={getPublicImagePath(item.image.src)}
-                  alt={item.label || ''}
-                  sizes="(min-width: 320px) 100vw, 100vw"
-                  quality={100}
-                  priority
-                  className={cn(
-                    'absolute top-0 right-0 bottom-0 my-auto h-auto w-full opacity-10',
-                    // 'mask-l-from-black mask-l-from-0% mask-l-to-transparent mask-l-to-50%',
-                  )}
-                />
-              )}
-              {item.image?.mode === 'icon' ? (
-                <div className="flex items-center gap-2">
-                  <img src={getPublicImagePath(item.image.src)} className="h-full w-6 rounded-md" />
+          <ul className="m-0 flex list-none flex-col gap-1 overflow-x-hidden overflow-y-auto p-0" id="dropdown-options">
+            {filtered.map((item, i) => (
+              <div
+                key={item.value}
+                ref={(el) => {
+                  itemRefs.current[i] = el;
+                }}
+                role="option"
+                title={item.label}
+                aria-selected={value === item.value}
+                id={`option-${item.value}`}
+                aria-posinset={i + 1}
+                aria-setsize={filtered.length}
+                onMouseDown={() => handleSelect(item.value)}
+                onMouseEnter={() => setHighlighted(i)}
+                className={cn(
+                  `hover:bg-accent relative flex h-fit shrink-0 cursor-pointer items-center justify-between gap-2 overflow-hidden rounded-md px-3 py-2 capitalize`,
+                  highlighted === i && 'bg-accent',
+                )}
+              >
+                {item.image?.src && item.image.mode === 'background' && (
+                  <Image
+                    width={350}
+                    height={200}
+                    src={getPublicImagePath(item.image.src)}
+                    alt={item.label || ''}
+                    sizes="(min-width: 320px) 100vw, 100vw"
+                    quality={100}
+                    priority
+                    className={cn(
+                      'absolute top-0 right-0 bottom-0 my-auto h-auto w-full opacity-10',
+                      // 'mask-l-from-black mask-l-from-0% mask-l-to-transparent mask-l-to-50%',
+                    )}
+                  />
+                )}
+                {item.image?.mode === 'icon' ? (
+                  <div className="flex items-center gap-2">
+                    <img src={getPublicImagePath(item.image.src)} alt={item.label} className="h-full w-6 rounded-md" />
+                    <span className="line-clamp-2 font-medium text-white">{item.label}</span>
+                  </div>
+                ) : (
                   <span className="line-clamp-2 font-medium text-white">{item.label}</span>
-                </div>
-              ) : (
-                <span className="line-clamp-2 font-medium text-white">{item.label}</span>
-              )}
-              {value === item.value && (
-                <span className="text-muted-foreground">
-                  <Check size={16} />
-                </span>
-              )}
-            </div>
-          ))}
+                )}
+                {value === item.value && (
+                  <span className="text-muted-foreground">
+                    <Check size={16} />
+                  </span>
+                )}
+              </div>
+            ))}
+          </ul>
         </div>
       </div>
     </div>
